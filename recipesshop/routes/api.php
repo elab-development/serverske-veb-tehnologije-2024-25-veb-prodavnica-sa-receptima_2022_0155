@@ -5,6 +5,7 @@ use App\Http\Controllers\IngredientController;
 use App\Http\Controllers\RecipeController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\OrderController;
 
 /*
 |--------------------------------------------------------------------------
@@ -38,5 +39,7 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
 
     Route::resource('recipes', RecipeController::class)
         ->only(['store', 'update', 'destroy']);
-
+    
+    Route::resource('orders', OrderController::class)
+        ->except(['edit', 'create', 'destroy']);
 });
