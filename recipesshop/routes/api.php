@@ -29,6 +29,7 @@ Route::get('/ingredients', [IngredientController::class, 'index']);
 Route::get('/ingredients/{ingredient}', [IngredientController::class, 'show']);
 
 Route::get('/recipes', [RecipeController::class, 'index']);
+Route::get('/recipes/{recipe}/ingredients', [RecipeController::class, 'ingredients']);
 Route::get('/recipes/{recipe}', [RecipeController::class, 'show']);
 
 Route::group(['middleware' => ['auth:sanctum']], function () {

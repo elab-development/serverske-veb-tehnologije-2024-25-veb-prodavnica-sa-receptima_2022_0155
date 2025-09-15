@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Resources\IngredientResource;
 use App\Http\Resources\RecipeResource;
 use App\Models\Ingredient;
 use App\Models\Recipe;
@@ -115,6 +116,25 @@ class RecipeController extends Controller
                 'last_page' => $recipes->lastPage(),
             ],
             'recipes' => RecipeResource::collection($recipes),
+        ]);
+    }
+
+    public function ingredients(Recipe $recipe)
+    {
+        $ids = $recipe->ingredient_ids ?? [];
+
+        if (empty($ids)) {
+            return response()->json('No ingredients found for this recipe.', 404);
+        }
+
+        $ingredients = Ingredient::whereIn('id', $ids)->get();
+        $ingredients = $ingredients->sortBy(function ($ing) use ($ids) {
+            return array_search($ing->id, $ids, true);
+        })->values();
+
+        return response()->json([
+            'recipe_id'   => $recipe->id,
+            'ingredients' => IngredientResource::collection($ingredients),
         ]);
     }
 
