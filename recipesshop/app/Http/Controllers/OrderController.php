@@ -3,8 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Http\Resources\OrderResource;
+use App\Http\Resources\UserResource;
 use App\Models\Ingredient;
 use App\Models\Order;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -30,13 +32,27 @@ class OrderController extends Controller
         ]);
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
+    public function forUser(User $user)
     {
-        //
+        if (Auth::user()->role !== 'admin') {
+            return response()->json(['error' => 'Only admins can view user orders'], 403);
+        }
+
+        $orders = Order::with('user')
+            ->where('user_id', $user->id)
+            ->latest()
+            ->get();
+
+        if ($orders->isEmpty()) {
+            return response()->json('No orders found for this user.', 404);
+        }
+
+        return response()->json([
+            'user'   => new UserResource($user),
+            'orders' => OrderResource::collection($orders),
+        ]);
     }
+
 
     /**
      * Store a newly created resource in storage.
