@@ -43,4 +43,5 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::resource('orders', OrderController::class)
         ->except(['edit', 'create', 'destroy']);
     Route::get('/users/{user}/orders', [OrderController::class, 'forUser']);
+    Route::post('/orders/from-recipes', [OrderController::class, 'storeFromRecipes']);
 });

@@ -6,6 +6,7 @@ use App\Http\Resources\OrderResource;
 use App\Http\Resources\UserResource;
 use App\Models\Ingredient;
 use App\Models\Order;
+use App\Models\Recipe;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -83,6 +84,64 @@ class OrderController extends Controller
         return response()->json([
             'message' => 'Order created successfully',
             'order'   => new OrderResource($order),
+        ], 201);
+    }
+
+    public function storeFromRecipes(Request $request)
+    {
+        if (Auth::user()->role !== 'user') {
+            return response()->json(['error' => 'Only users can create orders'], 403);
+        }
+
+        $validated = $request->validate([
+            'recipe_ids' => ['required', 'array', 'min:1'],
+            'recipe_ids.*' => ['integer', 'distinct', 'exists:recipes,id'],
+            'include_ingredient_ids' => ['sometimes', 'array'],
+            'include_ingredient_ids.*' => ['integer', 'distinct', 'exists:ingredients,id'],
+            'exclude_ingredient_ids' => ['sometimes', 'array'],
+            'exclude_ingredient_ids.*' => ['integer', 'distinct', 'exists:ingredients,id'],
+        ]);
+
+        $recipes = Recipe::whereIn('id', $validated['recipe_ids'])->get(['ingredient_ids']);
+        $baseIds = [];
+        foreach ($recipes as $r) {
+            if (is_array($r->ingredient_ids)) {
+                $baseIds = array_merge($baseIds, $r->ingredient_ids);
+            }
+        }
+
+        $include = $validated['include_ingredient_ids'] ?? [];
+        $exclude = $validated['exclude_ingredient_ids'] ?? [];
+
+        $baseIds = array_values(array_unique(array_map('intval', $baseIds)));
+        $include = array_values(array_unique(array_map('intval', $include)));
+        $exclude = array_values(array_unique(array_map('intval', $exclude)));
+
+        $finalIds = array_values(array_unique(array_merge($baseIds, $include)));
+        if (!empty($exclude)) {
+            $finalIds = array_values(array_diff($finalIds, $exclude));
+        }
+
+        if (empty($finalIds)) {
+            return response()->json([
+                'error' => 'Selected recipes and modifiers resulted in an empty cart.'
+            ], 422);
+        }
+
+        $total = (float) Ingredient::whereIn('id', $finalIds)->sum('price');
+
+        $order = Order::create([
+            'user_id' => Auth::id(),
+            'ingredient_ids' => $finalIds,
+            'total_amount' => number_format($total, 2, '.', ''),
+            'status' => 'pending',
+        ]);
+
+        $order->load('user');
+
+        return response()->json([
+            'message' => 'Order created successfully from recipes',
+            'order' => new OrderResource($order),
         ], 201);
     }
 
