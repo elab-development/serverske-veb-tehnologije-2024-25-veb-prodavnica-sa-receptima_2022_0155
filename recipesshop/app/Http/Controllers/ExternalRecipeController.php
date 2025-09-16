@@ -11,12 +11,12 @@ class ExternalRecipeController extends Controller
     {
         $validated = $request->validate([
             'q'  => ['required', 'string', 'max:100'],
-            'source' => ['sometimes', 'in:mealdb'],
+            'source' => ['sometimes', 'in:mealdb,spoonacular,both'],
             'limit' => ['sometimes', 'integer', 'min:1', 'max:20'],
         ]);
 
         $q  = trim($validated['q']);
-        $source = $validated['source'];
+        $source = $validated['source'] ?? 'both';
         $limit = (int)($validated['limit'] ?? 10);
 
         $results = [];
@@ -25,10 +25,20 @@ class ExternalRecipeController extends Controller
             'source' => $source,
         ];
 
-        $mealdb = $this->fetchFromMealDb($q, $limit);
-        $results = array_merge($results, $mealdb['items']);
-        $meta['mealdb_count'] = $mealdb['count'];
-        
+        if ($source === 'mealdb' || $source === 'both') {
+            $mealdb = $this->fetchFromMealDb($q, $limit);
+            $results = array_merge($results, $mealdb['items']);
+            $meta['mealdb_count'] = $mealdb['count'];
+        }
+
+        if ($source === 'spoonacular' || $source === 'both') {
+            $spoonacular = $this->fetchFromSpoonacular($q, $limit);
+            $results = array_merge($results, $spoonacular['items']);
+            $meta['spoonacular_count'] = $spoonacular['count'];
+            if (!empty($spoonacular['note'])) {
+                $meta['spoonacular_note'] = $spoonacular['note'];
+            }
+        }
 
         if (empty($results)) {
             return response()->json('No recipes found from selected sources.', 404);
@@ -86,5 +96,62 @@ class ExternalRecipeController extends Controller
         }
     }
 
-   
+    protected function fetchFromSpoonacular(string $q, int $limit): array
+    {
+        $key = config('services.spoonacular.key');
+        if (!$key) {
+            return [
+                'items' => [],
+                'count' => 0,
+                'note' => 'Spoonacular API key not configured',
+            ];
+        }
+
+        try {
+            $resp = Http::timeout(12)->get('https://api.spoonacular.com/recipes/complexSearch', [
+                'apiKey' => $key,
+                'query' => $q,
+                'number' => $limit,
+                'addRecipeInformation' => 'true',
+            ]);
+            if (!$resp->ok()) {
+                return ['items' => [], 'count' => 0];
+            }
+            $data = $resp->json();
+            $results = $data['results'] ?? [];
+
+            $items = [];
+            foreach ($results as $r) {
+                $ings = [];
+                foreach ($r['extendedIngredients'] ?? [] as $ing) {
+                    $name = $ing['name'] ?? null;
+                    $amount = $ing['measures']['metric']['amount'] ?? null;
+                    $unit = $ing['measures']['metric']['unitLong'] ?? null;
+                    if ($name) {
+                        if ($amount && $unit) {
+                            $ings[] = "{$amount} {$unit} {$name}";
+                        } else {
+                            $ings[] = $name;
+                        }
+                    }
+                }
+
+                $items[] = [
+                    'id' => (string)($r['id'] ?? ''),
+                    'title' => $r['title'] ?? null,
+                    'image' => $r['image'] ?? null,
+                    'source' => 'spoonacular',
+                    'source_url' => $r['sourceUrl'] ?? null,
+                    'readyInMinutes' => $r['readyInMinutes'] ?? null,
+                    'servings' => $r['servings'] ?? null,
+                    'summary_html' => $r['summary'] ?? null,
+                    'ingredients' => $ings,
+                ];
+            }
+
+            return ['items' => $items, 'count' => count($items)];
+        } catch (\Throwable $e) {
+            return ['items' => [], 'count' => 0];
+        }
+    }
 }
