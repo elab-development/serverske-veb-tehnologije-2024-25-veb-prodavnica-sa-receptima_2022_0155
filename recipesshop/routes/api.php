@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\ExternalRecipeController;
 use App\Http\Controllers\IngredientController;
 use App\Http\Controllers\RecipeController;
 use Illuminate\Http\Request;
@@ -31,6 +32,8 @@ Route::get('/ingredients/{ingredient}', [IngredientController::class, 'show']);
 Route::get('/recipes', [RecipeController::class, 'index']);
 Route::get('/recipes/{recipe}/ingredients', [RecipeController::class, 'ingredients']);
 Route::get('/recipes/{recipe}', [RecipeController::class, 'show']);
+
+Route::get('/public/recipes', [ExternalRecipeController::class, 'search']);
 
 Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::post('/logout', [AuthController::class, 'logout']);
