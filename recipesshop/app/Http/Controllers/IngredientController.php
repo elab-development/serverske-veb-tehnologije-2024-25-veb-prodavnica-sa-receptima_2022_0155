@@ -10,7 +10,29 @@ use Illuminate\Support\Facades\Auth;
 class IngredientController extends Controller
 {
     /**
-     * Display a listing of the resource.
+     * @OA\Get(
+     *   path="/api/ingredients",
+     *   tags={"Ingredients"},
+     *   summary="List all ingredients",
+     *   @OA\Response(
+     *     response=200,
+     *     description="OK",
+     *     @OA\JsonContent(
+     *       type="object",
+     *       @OA\Property(
+     *         property="ingredients",
+     *         type="array",
+     *         @OA\Items(
+     *           type="object",
+     *           @OA\Property(property="id", type="integer", example=1),
+     *           @OA\Property(property="name", type="string", example="Tomato"),
+     *           @OA\Property(property="price", type="number", format="float", example=1.2)
+     *         )
+     *       )
+     *     )
+     *   ),
+     *   @OA\Response(response=404, description="No ingredients found.")
+     * )
      */
     public function index()
     {
@@ -25,7 +47,7 @@ class IngredientController extends Controller
         ]);
     }
 
-   /**
+    /**
      * @OA\Post(
      *   path="/api/ingredients",
      *   tags={"Ingredients"},
@@ -77,7 +99,32 @@ class IngredientController extends Controller
     }
 
     /**
-     * Display the specified resource.
+     * @OA\Get(
+     *   path="/api/ingredients/{ingredient}",
+     *   tags={"Ingredients"},
+     *   summary="Get a single ingredient",
+     *   @OA\Parameter(
+     *     name="ingredient",
+     *     in="path",
+     *     required=true,
+     *     description="Ingredient ID",
+     *     @OA\Schema(type="integer")
+     *   ),
+     *   @OA\Response(
+     *     response=200,
+     *     description="OK",
+     *     @OA\JsonContent(
+     *       type="object",
+     *       @OA\Property(property="ingredient",
+     *         type="object",
+     *         @OA\Property(property="id", type="integer", example=5),
+     *         @OA\Property(property="name", type="string", example="Cheese"),
+     *         @OA\Property(property="price", type="number", format="float", example=3.20)
+     *       )
+     *     )
+     *   ),
+     *   @OA\Response(response=404, description="Ingredient not found")
+     * )
      */
     public function show(Ingredient $ingredient)
     {
@@ -86,7 +133,7 @@ class IngredientController extends Controller
         ]);
     }
 
-       /**
+    /**
      * @OA\Put(
      *   path="/api/ingredients/{id}",
      *   tags={"Ingredients"},
