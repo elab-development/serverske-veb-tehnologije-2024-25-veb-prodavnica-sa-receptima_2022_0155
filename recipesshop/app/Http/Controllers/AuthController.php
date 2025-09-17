@@ -73,6 +73,37 @@ class AuthController extends Controller
         ]);
     }
 
+    /**
+     * @OA\Post(
+     *   path="/api/login",
+     *   tags={"Auth"},
+     *   summary="Login",
+     *   description="Authenticates a user and returns a Sanctum access token.",
+     *   @OA\RequestBody(
+     *     required=true,
+     *     @OA\JsonContent(
+     *       required={"email","password"},
+     *       @OA\Property(property="email", type="string", format="email", example="jane@example.com"),
+     *       @OA\Property(property="password", type="string", example="secret1234")
+     *     )
+     *   ),
+     *   @OA\Response(
+     *     response=200,
+     *     description="Logged in",
+     *     @OA\JsonContent(
+     *       type="object",
+     *       @OA\Property(property="message", type="string", example="Jane Doe logged in"),
+     *       @OA\Property(property="access_token", type="string", example="1|uXb..."),
+     *       @OA\Property(property="token_type", type="string", example="Bearer")
+     *     )
+     *   ),
+     *   @OA\Response(
+     *     response=401,
+     *     description="Invalid credentials",
+     *     @OA\JsonContent(type="object", example={"message":"WRONG INPUT"})
+     *   )
+     * )
+     */
     public function login(Request $request)
     {
         if (!Auth::attempt($request->only('email', 'password'))) {
@@ -90,6 +121,24 @@ class AuthController extends Controller
         ]);
     }
 
+    /**
+     * @OA\Post(
+     *   path="/api/logout",
+     *   tags={"Auth"},
+     *   summary="Logout",
+     *   description="Revokes all active tokens for the authenticated user.",
+     *   security={{"bearerAuth":{}}},
+     *   @OA\Response(
+     *     response=200,
+     *     description="Logged out",
+     *     @OA\JsonContent(type="object", example={"message":"You have successfully logged out."})
+     *   ),
+     *   @OA\Response(
+     *     response=401,
+     *     description="Unauthenticated"
+     *   )
+     * )
+     */
     public function logout()
     {
         auth()->user()->tokens()->delete();
