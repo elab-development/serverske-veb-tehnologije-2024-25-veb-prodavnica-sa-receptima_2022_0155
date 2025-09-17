@@ -112,6 +112,7 @@
                 }
             }
         },
+<<<<<<< HEAD
         "/api/login": {
             "post": {
                 "tags": [
@@ -120,12 +121,22 @@
                 "summary": "Login",
                 "description": "Authenticates a user and returns a Sanctum access token.",
                 "operationId": "a3b306d14572d1f4bd6c064b3233e7b8",
+=======
+        "/api/ingredients": {
+            "post": {
+                "tags": [
+                    "Ingredients"
+                ],
+                "summary": "Create a new ingredient (admin only)",
+                "operationId": "290f4795ec7faed0d1e88d61aeb935ee",
+>>>>>>> 9812a3f (swagger za kreiranje, azuriranje i brisanje sastojaka)
                 "requestBody": {
                     "required": true,
                     "content": {
                         "application/json": {
                             "schema": {
                                 "required": [
+<<<<<<< HEAD
                                     "email",
                                     "password"
                                 ],
@@ -138,6 +149,110 @@
                                     "password": {
                                         "type": "string",
                                         "example": "secret1234"
+=======
+                                    "name",
+                                    "price"
+                                ],
+                                "properties": {
+                                    "name": {
+                                        "type": "string",
+                                        "maxLength": 255,
+                                        "example": "Olive Oil"
+                                    },
+                                    "price": {
+                                        "type": "number",
+                                        "format": "float",
+                                        "example": 5.5
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Ingredient created",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Ingredient created successfully"
+                                        },
+                                        "ingredient": {
+                                            "properties": {
+                                                "id": {
+                                                    "type": "integer",
+                                                    "example": 20
+                                                },
+                                                "name": {
+                                                    "type": "string",
+                                                    "example": "Olive Oil"
+                                                },
+                                                "price": {
+                                                    "type": "number",
+                                                    "format": "float",
+                                                    "example": 5.5
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Only admins can create ingredients"
+                    },
+                    "422": {
+                        "description": "Validation error"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/ingredients/{id}": {
+            "put": {
+                "tags": [
+                    "Ingredients"
+                ],
+                "summary": "Update an ingredient (admin only)",
+                "operationId": "b2b705f67b293905971309a7927b3636",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Ingredient ID",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": false,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "name": {
+                                        "type": "string",
+                                        "maxLength": 255,
+                                        "example": "Greek Olive Oil"
+                                    },
+                                    "price": {
+                                        "type": "number",
+                                        "format": "float",
+                                        "example": 5.9900000000000002131628207280300557613372802734375
+>>>>>>> 9812a3f (swagger za kreiranje, azuriranje i brisanje sastojaka)
                                     }
                                 },
                                 "type": "object"
@@ -147,13 +262,18 @@
                 },
                 "responses": {
                     "200": {
+<<<<<<< HEAD
                         "description": "Logged in",
+=======
+                        "description": "Ingredient updated",
+>>>>>>> 9812a3f (swagger za kreiranje, azuriranje i brisanje sastojaka)
                         "content": {
                             "application/json": {
                                 "schema": {
                                     "properties": {
                                         "message": {
                                             "type": "string",
+<<<<<<< HEAD
                                             "example": "Jane Doe logged in"
                                         },
                                         "access_token": {
@@ -163,6 +283,27 @@
                                         "token_type": {
                                             "type": "string",
                                             "example": "Bearer"
+=======
+                                            "example": "Ingredient updated successfully"
+                                        },
+                                        "ingredient": {
+                                            "properties": {
+                                                "id": {
+                                                    "type": "integer",
+                                                    "example": 20
+                                                },
+                                                "name": {
+                                                    "type": "string",
+                                                    "example": "Greek Olive Oil"
+                                                },
+                                                "price": {
+                                                    "type": "number",
+                                                    "format": "float",
+                                                    "example": 5.9900000000000002131628207280300557613372802734375
+                                                }
+                                            },
+                                            "type": "object"
+>>>>>>> 9812a3f (swagger za kreiranje, azuriranje i brisanje sastojaka)
                                         }
                                     },
                                     "type": "object"
@@ -170,6 +311,7 @@
                             }
                         }
                     },
+<<<<<<< HEAD
                     "401": {
                         "description": "Invalid credentials",
                         "content": {
@@ -197,19 +339,63 @@
                 "responses": {
                     "200": {
                         "description": "Logged out",
+=======
+                    "403": {
+                        "description": "Only admins can update ingredients"
+                    },
+                    "422": {
+                        "description": "Validation error"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Ingredients"
+                ],
+                "summary": "Delete an ingredient (admin only)",
+                "operationId": "d7a227e0854bd498dfe1c1b9155b4bd0",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Ingredient ID",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Ingredient deleted",
+>>>>>>> 9812a3f (swagger za kreiranje, azuriranje i brisanje sastojaka)
                         "content": {
                             "application/json": {
                                 "schema": {
                                     "type": "object"
                                 },
                                 "example": {
+<<<<<<< HEAD
                                     "message": "You have successfully logged out."
+=======
+                                    "message": "Ingredient deleted successfully"
+>>>>>>> 9812a3f (swagger za kreiranje, azuriranje i brisanje sastojaka)
                                 }
                             }
                         }
                     },
+<<<<<<< HEAD
                     "401": {
                         "description": "Unauthenticated"
+=======
+                    "403": {
+                        "description": "Only admins can delete ingredients"
+>>>>>>> 9812a3f (swagger za kreiranje, azuriranje i brisanje sastojaka)
                     }
                 },
                 "security": [
@@ -233,6 +419,10 @@
         {
             "name": "Auth",
             "description": "Auth"
+        },
+        {
+            "name": "Ingredients",
+            "description": "Ingredients"
         }
     ]
 }

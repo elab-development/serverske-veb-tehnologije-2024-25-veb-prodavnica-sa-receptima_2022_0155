@@ -25,16 +25,37 @@ class IngredientController extends Controller
         ]);
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
-    }
-
-    /**
-     * Store a newly created resource in storage.
+   /**
+     * @OA\Post(
+     *   path="/api/ingredients",
+     *   tags={"Ingredients"},
+     *   summary="Create a new ingredient (admin only)",
+     *   security={{"bearerAuth":{}}},
+     *   @OA\RequestBody(
+     *     required=true,
+     *     @OA\JsonContent(
+     *       required={"name","price"},
+     *       @OA\Property(property="name", type="string", maxLength=255, example="Olive Oil"),
+     *       @OA\Property(property="price", type="number", format="float", example=5.50)
+     *     )
+     *   ),
+     *   @OA\Response(
+     *     response=201,
+     *     description="Ingredient created",
+     *     @OA\JsonContent(
+     *       type="object",
+     *       @OA\Property(property="message", type="string", example="Ingredient created successfully"),
+     *       @OA\Property(property="ingredient",
+     *         type="object",
+     *         @OA\Property(property="id", type="integer", example=20),
+     *         @OA\Property(property="name", type="string", example="Olive Oil"),
+     *         @OA\Property(property="price", type="number", format="float", example=5.50)
+     *       )
+     *     )
+     *   ),
+     *   @OA\Response(response=403, description="Only admins can create ingredients"),
+     *   @OA\Response(response=422, description="Validation error")
+     * )
      */
     public function store(Request $request)
     {
@@ -64,16 +85,41 @@ class IngredientController extends Controller
             'ingredient' => new IngredientResource($ingredient),
         ]);
     }
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Ingredient $ingredient)
-    {
-        //
-    }
 
-    /**
-     * Update the specified resource in storage.
+       /**
+     * @OA\Put(
+     *   path="/api/ingredients/{id}",
+     *   tags={"Ingredients"},
+     *   summary="Update an ingredient (admin only)",
+     *   security={{"bearerAuth":{}}},
+     *   @OA\Parameter(
+     *     name="id", in="path", required=true, description="Ingredient ID",
+     *     @OA\Schema(type="integer")
+     *   ),
+     *   @OA\RequestBody(
+     *     required=false,
+     *     @OA\JsonContent(
+     *       @OA\Property(property="name", type="string", maxLength=255, example="Greek Olive Oil"),
+     *       @OA\Property(property="price", type="number", format="float", example=5.99)
+     *     )
+     *   ),
+     *   @OA\Response(
+     *     response=200,
+     *     description="Ingredient updated",
+     *     @OA\JsonContent(
+     *       type="object",
+     *       @OA\Property(property="message", type="string", example="Ingredient updated successfully"),
+     *       @OA\Property(property="ingredient",
+     *         type="object",
+     *         @OA\Property(property="id", type="integer", example=20),
+     *         @OA\Property(property="name", type="string", example="Greek Olive Oil"),
+     *         @OA\Property(property="price", type="number", format="float", example=5.99)
+     *       )
+     *     )
+     *   ),
+     *   @OA\Response(response=403, description="Only admins can update ingredients"),
+     *   @OA\Response(response=422, description="Validation error")
+     * )
      */
     public function update(Request $request, Ingredient $ingredient)
     {
@@ -95,7 +141,22 @@ class IngredientController extends Controller
     }
 
     /**
-     * Remove the specified resource from storage.
+     * @OA\Delete(
+     *   path="/api/ingredients/{id}",
+     *   tags={"Ingredients"},
+     *   summary="Delete an ingredient (admin only)",
+     *   security={{"bearerAuth":{}}},
+     *   @OA\Parameter(
+     *     name="id", in="path", required=true, description="Ingredient ID",
+     *     @OA\Schema(type="integer")
+     *   ),
+     *   @OA\Response(
+     *     response=200,
+     *     description="Ingredient deleted",
+     *     @OA\JsonContent(type="object", example={"message":"Ingredient deleted successfully"})
+     *   ),
+     *   @OA\Response(response=403, description="Only admins can delete ingredients")
+     * )
      */
     public function destroy(Ingredient $ingredient)
     {
