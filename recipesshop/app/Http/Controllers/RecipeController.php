@@ -13,8 +13,52 @@ use Illuminate\Support\Str;
 
 class RecipeController extends Controller
 {
-    /**
-     * Display a listing of the resource.
+     /**
+     * @OA\Get(
+     *   path="/api/recipes",
+     *   tags={"Recipes"},
+     *   summary="List recipes (with search, filters, sort, pagination)",
+     *   @OA\Parameter(name="search", in="query", required=false, @OA\Schema(type="string"), description="Search in name, description and ingredient names"),
+     *   @OA\Parameter(name="ingredients_any", in="query", required=false, @OA\Schema(type="string"), description="CSV of ingredient IDs; recipe must contain ANY of them"),
+     *   @OA\Parameter(name="ingredients_all", in="query", required=false, @OA\Schema(type="string"), description="CSV of ingredient IDs; recipe must contain ALL of them"),
+     *   @OA\Parameter(name="ingredients_exclude", in="query", required=false, @OA\Schema(type="string"), description="CSV of ingredient IDs to exclude"),
+     *   @OA\Parameter(
+     *     name="sort", in="query", required=false,
+     *     @OA\Schema(type="string", enum={"name","-name","created_at","-created_at","updated_at","-updated_at","ingredients_count","-ingredients_count"}),
+     *     description="Sort field (prefix with - for DESC)"
+     *   ),
+     *   @OA\Parameter(name="per_page", in="query", required=false, @OA\Schema(type="integer", minimum=1, maximum=100), description="Items per page (default 15)"),
+     *   @OA\Parameter(name="page", in="query", required=false, @OA\Schema(type="integer", minimum=1), description="Page number (default 1)"),
+     *   @OA\Response(
+     *     response=200,
+     *     description="OK",
+     *     @OA\JsonContent(
+     *       type="object",
+     *       @OA\Property(property="meta", type="object",
+     *         @OA\Property(property="page", type="integer", example=1),
+     *         @OA\Property(property="per_page", type="integer", example=15),
+     *         @OA\Property(property="total", type="integer", example=42),
+     *         @OA\Property(property="last_page", type="integer", example=3)
+     *       ),
+     *       @OA\Property(property="recipes", type="array",
+     *         @OA\Items(type="object",
+     *           @OA\Property(property="id", type="integer", example=7),
+     *           @OA\Property(property="name", type="string", example="Greek Salad"),
+     *           @OA\Property(property="description", type="string", example="Fresh and easy."),
+     *           @OA\Property(property="ingredient_ids", type="array", @OA\Items(type="integer"), example={1,2,3,5}),
+     *           @OA\Property(property="ingredients", type="array",
+     *             @OA\Items(type="object",
+     *               @OA\Property(property="id", type="integer", example=1),
+     *               @OA\Property(property="name", type="string", example="Tomato"),
+     *               @OA\Property(property="price", type="number", format="float", example=1.20)
+     *             )
+     *           )
+     *         )
+     *       )
+     *     )
+     *   ),
+     *   @OA\Response(response=404, description="No recipes found.")
+     * )
      */
     public function index(Request $request)
     {
@@ -118,7 +162,33 @@ class RecipeController extends Controller
             'recipes' => RecipeResource::collection($recipes),
         ]);
     }
-
+    /**
+     * @OA\Get(
+     *   path="/api/recipes/{recipe}/ingredients",
+     *   tags={"Recipes"},
+     *   summary="Get the ingredients for a specific recipe",
+     *   @OA\Parameter(
+     *     name="recipe", in="path", required=true, description="Recipe ID",
+     *     @OA\Schema(type="integer")
+     *   ),
+     *   @OA\Response(
+     *     response=200,
+     *     description="OK",
+     *     @OA\JsonContent(
+     *       type="object",
+     *       @OA\Property(property="recipe_id", type="integer", example=5),
+     *       @OA\Property(property="ingredients", type="array",
+     *         @OA\Items(type="object",
+     *           @OA\Property(property="id", type="integer", example=1),
+     *           @OA\Property(property="name", type="string", example="Tomato"),
+     *           @OA\Property(property="price", type="number", format="float", example=1.20)
+     *         )
+     *       )
+     *     )
+     *   ),
+     *   @OA\Response(response=404, description="No ingredients found for this recipe.")
+     * )
+     */
     public function ingredients(Recipe $recipe)
     {
         $ids = $recipe->ingredient_ids ?? [];

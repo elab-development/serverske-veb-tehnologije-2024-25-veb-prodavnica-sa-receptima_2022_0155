@@ -248,7 +248,7 @@
                                                     "price": {
                                                         "type": "number",
                                                         "format": "float",
-                                                        "example": 1.1999999999999999555910790149937383830547332763671875
+                                                        "example": 1.2
                                                     }
                                                 },
                                                 "type": "object"
@@ -384,7 +384,7 @@
                                                 "price": {
                                                     "type": "number",
                                                     "format": "float",
-                                                    "example": 3.20000000000000017763568394002504646778106689453125
+                                                    "example": 3.2
                                                 }
                                             },
                                             "type": "object"
@@ -433,7 +433,7 @@
                                     "price": {
                                         "type": "number",
                                         "format": "float",
-                                        "example": 5.9900000000000002131628207280300557613372802734375
+                                        "example": 5.99
                                     }
                                 },
                                 "type": "object"
@@ -465,7 +465,7 @@
                                                 "price": {
                                                     "type": "number",
                                                     "format": "float",
-                                                    "example": 5.9900000000000002131628207280300557613372802734375
+                                                    "example": 5.99
                                                 }
                                             },
                                             "type": "object"
@@ -530,6 +530,246 @@
                     }
                 ]
             }
+        },
+        "/api/recipes": {
+            "get": {
+                "tags": [
+                    "Recipes"
+                ],
+                "summary": "List recipes (with search, filters, sort, pagination)",
+                "operationId": "8b9e556d4d747bd60232961951494bfb",
+                "parameters": [
+                    {
+                        "name": "search",
+                        "in": "query",
+                        "description": "Search in name, description and ingredient names",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "ingredients_any",
+                        "in": "query",
+                        "description": "CSV of ingredient IDs; recipe must contain ANY of them",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "ingredients_all",
+                        "in": "query",
+                        "description": "CSV of ingredient IDs; recipe must contain ALL of them",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "ingredients_exclude",
+                        "in": "query",
+                        "description": "CSV of ingredient IDs to exclude",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "sort",
+                        "in": "query",
+                        "description": "Sort field (prefix with - for DESC)",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "name",
+                                "-name",
+                                "created_at",
+                                "-created_at",
+                                "updated_at",
+                                "-updated_at",
+                                "ingredients_count",
+                                "-ingredients_count"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "per_page",
+                        "in": "query",
+                        "description": "Items per page (default 15)",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "maximum": 100,
+                            "minimum": 1
+                        }
+                    },
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "description": "Page number (default 1)",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "minimum": 1
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "meta": {
+                                            "properties": {
+                                                "page": {
+                                                    "type": "integer",
+                                                    "example": 1
+                                                },
+                                                "per_page": {
+                                                    "type": "integer",
+                                                    "example": 15
+                                                },
+                                                "total": {
+                                                    "type": "integer",
+                                                    "example": 42
+                                                },
+                                                "last_page": {
+                                                    "type": "integer",
+                                                    "example": 3
+                                                }
+                                            },
+                                            "type": "object"
+                                        },
+                                        "recipes": {
+                                            "type": "array",
+                                            "items": {
+                                                "properties": {
+                                                    "id": {
+                                                        "type": "integer",
+                                                        "example": 7
+                                                    },
+                                                    "name": {
+                                                        "type": "string",
+                                                        "example": "Greek Salad"
+                                                    },
+                                                    "description": {
+                                                        "type": "string",
+                                                        "example": "Fresh and easy."
+                                                    },
+                                                    "ingredient_ids": {
+                                                        "type": "array",
+                                                        "items": {
+                                                            "type": "integer"
+                                                        },
+                                                        "example": [
+                                                            1,
+                                                            2,
+                                                            3,
+                                                            5
+                                                        ]
+                                                    },
+                                                    "ingredients": {
+                                                        "type": "array",
+                                                        "items": {
+                                                            "properties": {
+                                                                "id": {
+                                                                    "type": "integer",
+                                                                    "example": 1
+                                                                },
+                                                                "name": {
+                                                                    "type": "string",
+                                                                    "example": "Tomato"
+                                                                },
+                                                                "price": {
+                                                                    "type": "number",
+                                                                    "format": "float",
+                                                                    "example": 1.2
+                                                                }
+                                                            },
+                                                            "type": "object"
+                                                        }
+                                                    }
+                                                },
+                                                "type": "object"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "No recipes found."
+                    }
+                }
+            }
+        },
+        "/api/recipes/{recipe}/ingredients": {
+            "get": {
+                "tags": [
+                    "Recipes"
+                ],
+                "summary": "Get the ingredients for a specific recipe",
+                "operationId": "52a68b3239e5581273eff80aeef5345d",
+                "parameters": [
+                    {
+                        "name": "recipe",
+                        "in": "path",
+                        "description": "Recipe ID",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "recipe_id": {
+                                            "type": "integer",
+                                            "example": 5
+                                        },
+                                        "ingredients": {
+                                            "type": "array",
+                                            "items": {
+                                                "properties": {
+                                                    "id": {
+                                                        "type": "integer",
+                                                        "example": 1
+                                                    },
+                                                    "name": {
+                                                        "type": "string",
+                                                        "example": "Tomato"
+                                                    },
+                                                    "price": {
+                                                        "type": "number",
+                                                        "format": "float",
+                                                        "example": 1.2
+                                                    }
+                                                },
+                                                "type": "object"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "No ingredients found for this recipe."
+                    }
+                }
+            }
         }
     },
     "components": {
@@ -549,6 +789,10 @@
         {
             "name": "Ingredients",
             "description": "Ingredients"
+        },
+        {
+            "name": "Recipes",
+            "description": "Recipes"
         }
     ]
 }
