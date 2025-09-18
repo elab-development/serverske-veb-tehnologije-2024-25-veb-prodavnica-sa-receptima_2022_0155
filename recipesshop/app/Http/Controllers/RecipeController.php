@@ -217,7 +217,38 @@ class RecipeController extends Controller
     }
 
     /**
-     * Store a newly created resource in storage.
+     * @OA\Post(
+     *   path="/api/recipes",
+     *   tags={"Recipes"},
+     *   summary="Create a new recipe (admin only)",
+     *   security={{"bearerAuth":{}}},
+     *   @OA\RequestBody(
+     *     required=true,
+     *     @OA\JsonContent(
+     *       required={"name","ingredient_ids"},
+     *       @OA\Property(property="name", type="string", maxLength=255, example="Greek Salad"),
+     *       @OA\Property(property="description", type="string", example="Fresh and easy."),
+     *       @OA\Property(property="ingredient_ids", type="array", @OA\Items(type="integer"), example={1,2,3,5})
+     *     )
+     *   ),
+     *   @OA\Response(
+     *     response=201,
+     *     description="Recipe created",
+     *     @OA\JsonContent(
+     *       type="object",
+     *       @OA\Property(property="message", type="string", example="Recipe created successfully"),
+     *       @OA\Property(property="recipe",
+     *         type="object",
+     *         @OA\Property(property="id", type="integer", example=12),
+     *         @OA\Property(property="name", type="string", example="Greek Salad"),
+     *         @OA\Property(property="description", type="string", example="Fresh and easy."),
+     *         @OA\Property(property="ingredient_ids", type="array", @OA\Items(type="integer"), example={1,2,3,5})
+     *       )
+     *     )
+     *   ),
+     *   @OA\Response(response=403, description="Only admins can create recipes"),
+     *   @OA\Response(response=422, description="Validation error")
+     * )
      */
     public function store(Request $request)
     {
@@ -242,7 +273,30 @@ class RecipeController extends Controller
         ], 201);
     }
     /**
-     * Display the specified resource.
+     * @OA\Get(
+     *   path="/api/recipes/{recipe}",
+     *   tags={"Recipes"},
+     *   summary="Get a single recipe",
+     *   @OA\Parameter(
+     *     name="recipe", in="path", required=true, description="Recipe ID",
+     *     @OA\Schema(type="integer")
+     *   ),
+     *   @OA\Response(
+     *     response=200,
+     *     description="OK",
+     *     @OA\JsonContent(
+     *       type="object",
+     *       @OA\Property(property="recipe",
+     *         type="object",
+     *         @OA\Property(property="id", type="integer", example=7),
+     *         @OA\Property(property="name", type="string", example="Greek Salad"),
+     *         @OA\Property(property="description", type="string", example="Fresh and easy."),
+     *         @OA\Property(property="ingredient_ids", type="array", @OA\Items(type="integer"), example={1,2,3,5})
+     *       )
+     *     )
+     *   ),
+     *   @OA\Response(response=404, description="Recipe not found")
+     * )
      */
     public function show(Recipe $recipe)
     {

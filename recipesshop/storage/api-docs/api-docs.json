@@ -248,7 +248,7 @@
                                                     "price": {
                                                         "type": "number",
                                                         "format": "float",
-                                                        "example": 1.1999999999999999555910790149937383830547332763671875
+                                                        "example": 1.2
                                                     }
                                                 },
                                                 "type": "object"
@@ -384,7 +384,7 @@
                                                 "price": {
                                                     "type": "number",
                                                     "format": "float",
-                                                    "example": 3.20000000000000017763568394002504646778106689453125
+                                                    "example": 3.2
                                                 }
                                             },
                                             "type": "object"
@@ -433,7 +433,7 @@
                                     "price": {
                                         "type": "number",
                                         "format": "float",
-                                        "example": 5.9900000000000002131628207280300557613372802734375
+                                        "example": 5.99
                                     }
                                 },
                                 "type": "object"
@@ -465,7 +465,7 @@
                                                 "price": {
                                                     "type": "number",
                                                     "format": "float",
-                                                    "example": 5.9900000000000002131628207280300557613372802734375
+                                                    "example": 5.99
                                                 }
                                             },
                                             "type": "object"
@@ -560,7 +560,7 @@
                                                     "total_amount": {
                                                         "type": "number",
                                                         "format": "float",
-                                                        "example": 12.300000000000000710542735760100185871124267578125
+                                                        "example": 12.3
                                                     },
                                                     "ingredient_ids": {
                                                         "type": "array",
@@ -668,7 +668,7 @@
                                                     "total_amount": {
                                                         "type": "number",
                                                         "format": "float",
-                                                        "example": 8.699999999999999289457264239899814128875732421875
+                                                        "example": 8.7
                                                     },
                                                     "ingredient_ids": {
                                                         "type": "array",
@@ -742,7 +742,7 @@
                                                 "total_amount": {
                                                     "type": "number",
                                                     "format": "float",
-                                                    "example": 12.300000000000000710542735760100185871124267578125
+                                                    "example": 12.3
                                                 },
                                                 "ingredient_ids": {
                                                     "type": "array",
@@ -931,7 +931,7 @@
                                                                 "price": {
                                                                     "type": "number",
                                                                     "format": "float",
-                                                                    "example": 1.1999999999999999555910790149937383830547332763671875
+                                                                    "example": 1.2
                                                                 }
                                                             },
                                                             "type": "object"
@@ -951,6 +951,108 @@
                         "description": "No recipes found."
                     }
                 }
+            },
+            "post": {
+                "tags": [
+                    "Recipes"
+                ],
+                "summary": "Create a new recipe (admin only)",
+                "operationId": "46448289940e329a644b891be9c66943",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "name",
+                                    "ingredient_ids"
+                                ],
+                                "properties": {
+                                    "name": {
+                                        "type": "string",
+                                        "maxLength": 255,
+                                        "example": "Greek Salad"
+                                    },
+                                    "description": {
+                                        "type": "string",
+                                        "example": "Fresh and easy."
+                                    },
+                                    "ingredient_ids": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "integer"
+                                        },
+                                        "example": [
+                                            1,
+                                            2,
+                                            3,
+                                            5
+                                        ]
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Recipe created",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Recipe created successfully"
+                                        },
+                                        "recipe": {
+                                            "properties": {
+                                                "id": {
+                                                    "type": "integer",
+                                                    "example": 12
+                                                },
+                                                "name": {
+                                                    "type": "string",
+                                                    "example": "Greek Salad"
+                                                },
+                                                "description": {
+                                                    "type": "string",
+                                                    "example": "Fresh and easy."
+                                                },
+                                                "ingredient_ids": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "integer"
+                                                    },
+                                                    "example": [
+                                                        1,
+                                                        2,
+                                                        3,
+                                                        5
+                                                    ]
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Only admins can create recipes"
+                    },
+                    "422": {
+                        "description": "Validation error"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
             }
         },
         "/api/recipes/{recipe}/ingredients": {
@@ -997,7 +1099,7 @@
                                                     "price": {
                                                         "type": "number",
                                                         "format": "float",
-                                                        "example": 1.1999999999999999555910790149937383830547332763671875
+                                                        "example": 1.2
                                                     }
                                                 },
                                                 "type": "object"
@@ -1011,6 +1113,72 @@
                     },
                     "404": {
                         "description": "No ingredients found for this recipe."
+                    }
+                }
+            }
+        },
+        "/api/recipes/{recipe}": {
+            "get": {
+                "tags": [
+                    "Recipes"
+                ],
+                "summary": "Get a single recipe",
+                "operationId": "e5e159c267e317da046a97d304644388",
+                "parameters": [
+                    {
+                        "name": "recipe",
+                        "in": "path",
+                        "description": "Recipe ID",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "recipe": {
+                                            "properties": {
+                                                "id": {
+                                                    "type": "integer",
+                                                    "example": 7
+                                                },
+                                                "name": {
+                                                    "type": "string",
+                                                    "example": "Greek Salad"
+                                                },
+                                                "description": {
+                                                    "type": "string",
+                                                    "example": "Fresh and easy."
+                                                },
+                                                "ingredient_ids": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "integer"
+                                                    },
+                                                    "example": [
+                                                        1,
+                                                        2,
+                                                        3,
+                                                        5
+                                                    ]
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Recipe not found"
                     }
                 }
             }
