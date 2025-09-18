@@ -1,66 +1,68 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+Web prodavnica sa receptima
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+Backend aplikacija za jednostavnu veb prodavnicu sa receptima i sastojcima. Korisnici mogu da pretražuju recepte i sastojke, dobiju predloge recepata na osnovu unetih sastojaka, kao i da iz izabranog recepta automatski formiraju korpu. Administratori upravljaju celokupnim sadržajem i porudžbinama.
 
-## About Laravel
+⸻
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+Bezbednost i kontrola pristupa
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+Aplikacija koristi Laravel Sanctum za autentikaciju i izdavanje Bearer tokena, pa su sve operacije koje menjaju podatke dostupne isključivo
+prijavljenim korisnicima. Uloge su podeljene na korisnike i administratore, a dozvole su definisane na nivou kontrolera i pojedinačnih akcija.
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+Korisnici mogu slobodno da istražuju javne sadržaje — liste i detalje recepata i sastojaka — uz podršku filtera i paginacije. Kada je reč o kupovini, korisnici mogu da formiraju korpu i kreiraju porudžbine, kao i da vide isključivo svoje porudžbine i njihove detalje. 
 
-## Learning Laravel
+Administratori imaju proširene privilegije. Pored pregleda javnih sadržaja, administrator upravlja celokupnim katalogom: kreira, ažurira i briše recepte i sastojke. U domenu porudžbina, administrator ima uvid u sve porudžbine i može da menja njihov status (npr. pending, paid, canceled, shipped), što omogućava operativnu obradu narudžbina. Kreiranje same porudžbine ostavljeno je krajnjim korisnicima (kupcima), čime se razdvajaju uloge kupovine i administracije. Po potrebi, dostupne su i administratorske rute za pregled porudžbina po konkretnom korisniku ili drugim kriterijumima.
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+Javne rute obuhvataju isključivo čitanje: pregled lista i pojedinačnih recepata/sastojaka. Sve ostalo — rad sa korpom, kreiranje porudžbina, uređivanje recepta/sastojka i administrativne operacije — zahteva validan Sanctum token.
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+⸻
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+Instalacija i pokretanje
 
-## Laravel Sponsors
+Preduslovi
+	•	PHP 8.2+
+	•	Composer 
+	•	MySQL 
+	•	Node.js 18+ 
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+Koraci
 
-### Premium Partners
+# 1) Kloniranje
+git clone <repo-url>
+cd <repo-folder>
 
-- **[Vehikl](https://vehikl.com/)**
-- **[Tighten Co.](https://tighten.co)**
-- **[WebReinvent](https://webreinvent.com/)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel/)**
-- **[Cyber-Duck](https://cyber-duck.co.uk)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Jump24](https://jump24.co.uk)**
-- **[Redberry](https://redberry.international/laravel/)**
-- **[Active Logic](https://activelogic.com)**
-- **[byte5](https://byte5.de)**
-- **[OP.GG](https://op.gg)**
+# 2) PHP zavisnosti
+composer install
 
-## Contributing
+# 3) Kreiranje .env fajla i aplikacionog ključa
+cp .env.example .env
+php artisan key:generate
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+# 4) Podesite .env (DB_* promenljive)
 
-## Code of Conduct
+# 5) Migracije i seederi 
+php artisan migrate --seed
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+# 6) Pokretanje lokalnog servera
+php artisan serve
+# Aplikacija je dostupna na http://127.0.0.1:8000
 
-## Security Vulnerabilities
+⸻
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+Swagger (OpenAPI) dokumentacija
 
-## License
+Projekt koristi paket L5-Swagger.
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+Generisanje i pregled:
+
+1 - composer require "darkaonline/l5-swagger"
+2 - php artisan vendor:publish --provider "L5Swagger\L5SwaggerServiceProvider"
+
+# Generišite OpenAPI JSON/YAML
+php artisan l5-swagger:generate
+
+Zatim otvorite /api/documentation u browser-u (npr. http://127.0.0.1:8000/api/documentation).
+
+U Swagger UI možete izvršavati pozive direktno iz browser-a.
+
+⸻
