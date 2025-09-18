@@ -7,6 +7,57 @@ use Illuminate\Support\Facades\Http;
 
 class ExternalRecipeController extends Controller
 {
+    /**
+     * @OA\Get(
+     *   path="/api/public/recipes",
+     *   tags={"External Recipes"},
+     *   summary="Search public recipe APIs (TheMealDB + Spoonacular)",
+     *   description="Searches TheMealDB (free) and/or Spoonacular (requires API key) and returns normalized recipe results.",
+     *   @OA\Parameter(
+     *     name="q", in="query", required=true, description="Search query",
+     *     @OA\Schema(type="string", maxLength=100), example="chicken"
+     *   ),
+     *   @OA\Parameter(
+     *     name="source", in="query", required=false, description="Which sources to query",
+     *     @OA\Schema(type="string", enum={"mealdb","spoonacular","both"}), example="both"
+     *   ),
+     *   @OA\Parameter(
+     *     name="limit", in="query", required=false, description="Max items per source (1–20, default 10)",
+     *     @OA\Schema(type="integer", minimum=1, maximum=20), example=8
+     *   ),
+     *   @OA\Response(
+     *     response=200,
+     *     description="OK",
+     *     @OA\JsonContent(
+     *       type="object",
+     *       @OA\Property(property="meta", type="object",
+     *         @OA\Property(property="query", type="string", example="salad"),
+     *         @OA\Property(property="source", type="string", example="both"),
+     *         @OA\Property(property="mealdb_count", type="integer", example=4),
+     *         @OA\Property(property="spoonacular_count", type="integer", example=5),
+     *         @OA\Property(property="spoonacular_note", type="string", example="Spoonacular API key not configured", nullable=true)
+     *       ),
+     *       @OA\Property(property="recipes", type="array",
+     *         @OA\Items(type="object",
+     *           @OA\Property(property="id", type="string", example="52771"),
+     *           @OA\Property(property="title", type="string", example="Greek Salad"),
+     *           @OA\Property(property="image", type="string", example="https://.../thumb.jpg"),
+     *           @OA\Property(property="source", type="string", example="mealdb"),
+     *           @OA\Property(property="source_url", type="string", example="https://..."),
+     *           @OA\Property(property="category", type="string", example="Salad", nullable=true),
+     *           @OA\Property(property="area", type="string", example="Greek", nullable=true),
+     *           @OA\Property(property="instructions", type="string", example="Chop vegetables...", nullable=true),
+     *           @OA\Property(property="readyInMinutes", type="integer", example=20, nullable=true),
+     *           @OA\Property(property="servings", type="integer", example=2, nullable=true),
+     *           @OA\Property(property="summary_html", type="string", example="<b>Delicious</b> salad...", nullable=true),
+     *           @OA\Property(property="ingredients", type="array", @OA\Items(type="string"), example={"2 Tomatoes","1 Cucumber","1 tbsp Olive Oil"})
+     *         )
+     *       )
+     *     )
+     *   ),
+     *   @OA\Response(response=404, description="No recipes found from selected sources.")
+     * )
+     */
     public function search(Request $request)
     {
         $validated = $request->validate([

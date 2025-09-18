@@ -219,6 +219,168 @@
                 ]
             }
         },
+        "/api/public/recipes": {
+            "get": {
+                "tags": [
+                    "External Recipes"
+                ],
+                "summary": "Search public recipe APIs (TheMealDB + Spoonacular)",
+                "description": "Searches TheMealDB (free) and/or Spoonacular (requires API key) and returns normalized recipe results.",
+                "operationId": "65d0719f861d3939acdc1039bc6efc78",
+                "parameters": [
+                    {
+                        "name": "q",
+                        "in": "query",
+                        "description": "Search query",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "maxLength": 100
+                        },
+                        "example": "chicken"
+                    },
+                    {
+                        "name": "source",
+                        "in": "query",
+                        "description": "Which sources to query",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "mealdb",
+                                "spoonacular",
+                                "both"
+                            ]
+                        },
+                        "example": "both"
+                    },
+                    {
+                        "name": "limit",
+                        "in": "query",
+                        "description": "Max items per source (1–20, default 10)",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "maximum": 20,
+                            "minimum": 1
+                        },
+                        "example": 8
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "meta": {
+                                            "properties": {
+                                                "query": {
+                                                    "type": "string",
+                                                    "example": "salad"
+                                                },
+                                                "source": {
+                                                    "type": "string",
+                                                    "example": "both"
+                                                },
+                                                "mealdb_count": {
+                                                    "type": "integer",
+                                                    "example": 4
+                                                },
+                                                "spoonacular_count": {
+                                                    "type": "integer",
+                                                    "example": 5
+                                                },
+                                                "spoonacular_note": {
+                                                    "type": "string",
+                                                    "example": "Spoonacular API key not configured",
+                                                    "nullable": true
+                                                }
+                                            },
+                                            "type": "object"
+                                        },
+                                        "recipes": {
+                                            "type": "array",
+                                            "items": {
+                                                "properties": {
+                                                    "id": {
+                                                        "type": "string",
+                                                        "example": "52771"
+                                                    },
+                                                    "title": {
+                                                        "type": "string",
+                                                        "example": "Greek Salad"
+                                                    },
+                                                    "image": {
+                                                        "type": "string",
+                                                        "example": "https://.../thumb.jpg"
+                                                    },
+                                                    "source": {
+                                                        "type": "string",
+                                                        "example": "mealdb"
+                                                    },
+                                                    "source_url": {
+                                                        "type": "string",
+                                                        "example": "https://..."
+                                                    },
+                                                    "category": {
+                                                        "type": "string",
+                                                        "example": "Salad",
+                                                        "nullable": true
+                                                    },
+                                                    "area": {
+                                                        "type": "string",
+                                                        "example": "Greek",
+                                                        "nullable": true
+                                                    },
+                                                    "instructions": {
+                                                        "type": "string",
+                                                        "example": "Chop vegetables...",
+                                                        "nullable": true
+                                                    },
+                                                    "readyInMinutes": {
+                                                        "type": "integer",
+                                                        "example": 20,
+                                                        "nullable": true
+                                                    },
+                                                    "servings": {
+                                                        "type": "integer",
+                                                        "example": 2,
+                                                        "nullable": true
+                                                    },
+                                                    "summary_html": {
+                                                        "type": "string",
+                                                        "example": "<b>Delicious</b> salad...",
+                                                        "nullable": true
+                                                    },
+                                                    "ingredients": {
+                                                        "type": "array",
+                                                        "items": {
+                                                            "type": "string"
+                                                        },
+                                                        "example": [
+                                                            "2 Tomatoes",
+                                                            "1 Cucumber",
+                                                            "1 tbsp Olive Oil"
+                                                        ]
+                                                    }
+                                                },
+                                                "type": "object"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "No recipes found from selected sources."
+                    }
+                }
+            }
+        },
         "/api/ingredients": {
             "get": {
                 "tags": [
@@ -1649,6 +1811,10 @@
         {
             "name": "Auth",
             "description": "Auth"
+        },
+        {
+            "name": "External Recipes",
+            "description": "External Recipes"
         },
         {
             "name": "Ingredients",
