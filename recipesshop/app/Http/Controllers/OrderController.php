@@ -14,7 +14,33 @@ use Illuminate\Support\Facades\Auth;
 class OrderController extends Controller
 {
     /**
-     * Display a listing of the resource.
+     * @OA\Get(
+     *   path="/api/orders",
+     *   tags={"Orders"},
+     *   summary="List orders (admin: all, user: own only)",
+     *   security={{"bearerAuth":{}}},
+     *   @OA\Response(
+     *     response=200,
+     *     description="OK",
+     *     @OA\JsonContent(
+     *       type="object",
+     *       @OA\Property(property="orders", type="array",
+     *         @OA\Items(type="object",
+     *           @OA\Property(property="id", type="integer", example=12),
+     *           @OA\Property(property="status", type="string", example="pending"),
+     *           @OA\Property(property="total_amount", type="number", format="float", example=12.30),
+     *           @OA\Property(property="ingredient_ids", type="array", @OA\Items(type="integer"), example={1,2,5}),
+     *           @OA\Property(property="user", type="object",
+     *             @OA\Property(property="id", type="integer", example=3),
+     *             @OA\Property(property="name", type="string", example="Jane Doe"),
+     *             @OA\Property(property="email", type="string", example="jane@example.com")
+     *           )
+     *         )
+     *       )
+     *     )
+     *   ),
+     *   @OA\Response(response=404, description="No orders found.")
+     * )
      */
     public function index()
     {
@@ -32,6 +58,41 @@ class OrderController extends Controller
             'orders' => OrderResource::collection($orders),
         ]);
     }
+
+     /**
+     * @OA\Get(
+     *   path="/api/users/{user}/orders",
+     *   tags={"Orders"},
+     *   summary="Admin: list orders for a specific user",
+     *   security={{"bearerAuth":{}}},
+     *   @OA\Parameter(
+     *     name="user", in="path", required=true, description="User ID",
+     *     @OA\Schema(type="integer")
+     *   ),
+     *   @OA\Response(
+     *     response=200,
+     *     description="OK",
+     *     @OA\JsonContent(
+     *       type="object",
+     *       @OA\Property(property="user", type="object",
+     *         @OA\Property(property="id", type="integer", example=3),
+     *         @OA\Property(property="name", type="string", example="Jane Doe"),
+     *         @OA\Property(property="email", type="string", example="jane@example.com")
+     *       ),
+     *       @OA\Property(property="orders", type="array",
+     *         @OA\Items(type="object",
+     *           @OA\Property(property="id", type="integer", example=15),
+     *           @OA\Property(property="status", type="string", example="paid"),
+     *           @OA\Property(property="total_amount", type="number", format="float", example=8.70),
+     *           @OA\Property(property="ingredient_ids", type="array", @OA\Items(type="integer"), example={10,14})
+     *         )
+     *       )
+     *     )
+     *   ),
+     *   @OA\Response(response=403, description="Only admins can view user orders"),
+     *   @OA\Response(response=404, description="No orders found for this user.")
+     * )
+     */
 
     public function forUser(User $user)
     {
@@ -146,8 +207,32 @@ class OrderController extends Controller
     }
 
     /**
-     * Display the specified resource.
+     * @OA\Get(
+     *   path="/api/orders/{order}",
+     *   tags={"Orders"},
+     *   summary="Get a single order (admin:any, user:own only)",
+     *   security={{"bearerAuth":{}}},
+     *   @OA\Parameter(
+     *     name="order", in="path", required=true, description="Order ID",
+     *     @OA\Schema(type="integer")
+     *   ),
+     *   @OA\Response(
+     *     response=200,
+     *     description="OK",
+     *     @OA\JsonContent(
+     *       type="object",
+     *       @OA\Property(property="order", type="object",
+     *         @OA\Property(property="id", type="integer", example=22),
+     *         @OA\Property(property="status", type="string", example="pending"),
+     *         @OA\Property(property="total_amount", type="number", format="float", example=12.30),
+     *         @OA\Property(property="ingredient_ids", type="array", @OA\Items(type="integer"), example={1,2,5})
+     *       )
+     *     )
+     *   ),
+     *   @OA\Response(response=403, description="Forbidden")
+     * )
      */
+
     public function show(Order $order)
     {
         if (Auth::user()->role !== 'admin' && $order->user_id !== Auth::id()) {
