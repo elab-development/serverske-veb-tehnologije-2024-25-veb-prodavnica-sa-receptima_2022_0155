@@ -314,7 +314,41 @@ class RecipeController extends Controller
     }
 
     /**
-     * Update the specified resource in storage.
+     * @OA\Put(
+     *   path="/api/recipes/{recipe}",
+     *   tags={"Recipes"},
+     *   summary="Update a recipe (admin only)",
+     *   security={{"bearerAuth":{}}},
+     *   @OA\Parameter(
+     *     name="recipe", in="path", required=true, description="Recipe ID",
+     *     @OA\Schema(type="integer")
+     *   ),
+     *   @OA\RequestBody(
+     *     required=false,
+     *     @OA\JsonContent(
+     *       @OA\Property(property="name", type="string", maxLength=255, example="Summer Greek Salad"),
+     *       @OA\Property(property="description", type="string", example="With extra basil."),
+     *       @OA\Property(property="ingredient_ids", type="array", @OA\Items(type="integer"), example={1,2,3,5,16})
+     *     )
+     *   ),
+     *   @OA\Response(
+     *     response=200,
+     *     description="Recipe updated",
+     *     @OA\JsonContent(
+     *       type="object",
+     *       @OA\Property(property="message", type="string", example="Recipe updated successfully"),
+     *       @OA\Property(property="recipe",
+     *         type="object",
+     *         @OA\Property(property="id", type="integer", example=7),
+     *         @OA\Property(property="name", type="string", example="Summer Greek Salad"),
+     *         @OA\Property(property="description", type="string", example="With extra basil."),
+     *         @OA\Property(property="ingredient_ids", type="array", @OA\Items(type="integer"), example={1,2,3,5,16})
+     *       )
+     *     )
+     *   ),
+     *   @OA\Response(response=403, description="Only admins can update recipes"),
+     *   @OA\Response(response=422, description="Validation error")
+     * )
      */
     public function update(Request $request, Recipe $recipe)
     {
@@ -342,7 +376,22 @@ class RecipeController extends Controller
     }
 
     /**
-     * Remove the specified resource from storage.
+     * @OA\Delete(
+     *   path="/api/recipes/{recipe}",
+     *   tags={"Recipes"},
+     *   summary="Delete a recipe (admin only)",
+     *   security={{"bearerAuth":{}}},
+     *   @OA\Parameter(
+     *     name="recipe", in="path", required=true, description="Recipe ID",
+     *     @OA\Schema(type="integer")
+     *   ),
+     *   @OA\Response(
+     *     response=200,
+     *     description="Recipe deleted",
+     *     @OA\JsonContent(type="object", example={"message":"Recipe deleted successfully"})
+     *   ),
+     *   @OA\Response(response=403, description="Only admins can delete recipes")
+     * )
      */
     public function destroy(Recipe $recipe)
     {

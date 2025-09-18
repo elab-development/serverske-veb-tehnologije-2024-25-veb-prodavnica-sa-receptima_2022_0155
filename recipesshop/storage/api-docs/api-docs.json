@@ -248,7 +248,7 @@
                                                     "price": {
                                                         "type": "number",
                                                         "format": "float",
-                                                        "example": 1.1999999999999999555910790149937383830547332763671875
+                                                        "example": 1.2
                                                     }
                                                 },
                                                 "type": "object"
@@ -384,7 +384,7 @@
                                                 "price": {
                                                     "type": "number",
                                                     "format": "float",
-                                                    "example": 3.20000000000000017763568394002504646778106689453125
+                                                    "example": 3.2
                                                 }
                                             },
                                             "type": "object"
@@ -433,7 +433,7 @@
                                     "price": {
                                         "type": "number",
                                         "format": "float",
-                                        "example": 5.9900000000000002131628207280300557613372802734375
+                                        "example": 5.99
                                     }
                                 },
                                 "type": "object"
@@ -465,7 +465,7 @@
                                                 "price": {
                                                     "type": "number",
                                                     "format": "float",
-                                                    "example": 5.9900000000000002131628207280300557613372802734375
+                                                    "example": 5.99
                                                 }
                                             },
                                             "type": "object"
@@ -560,7 +560,7 @@
                                                     "total_amount": {
                                                         "type": "number",
                                                         "format": "float",
-                                                        "example": 12.300000000000000710542735760100185871124267578125
+                                                        "example": 12.3
                                                     },
                                                     "ingredient_ids": {
                                                         "type": "array",
@@ -666,7 +666,7 @@
                                                 "total_amount": {
                                                     "type": "number",
                                                     "format": "float",
-                                                    "example": 12.300000000000000710542735760100185871124267578125
+                                                    "example": 12.3
                                                 },
                                                 "ingredient_ids": {
                                                     "type": "array",
@@ -759,7 +759,7 @@
                                                     "total_amount": {
                                                         "type": "number",
                                                         "format": "float",
-                                                        "example": 8.699999999999999289457264239899814128875732421875
+                                                        "example": 8.7
                                                     },
                                                     "ingredient_ids": {
                                                         "type": "array",
@@ -869,7 +869,7 @@
                                                 "total_amount": {
                                                     "type": "number",
                                                     "format": "float",
-                                                    "example": 18.39999999999999857891452847979962825775146484375
+                                                    "example": 18.4
                                                 },
                                                 "ingredient_ids": {
                                                     "type": "array",
@@ -944,7 +944,7 @@
                                                 "total_amount": {
                                                     "type": "number",
                                                     "format": "float",
-                                                    "example": 12.300000000000000710542735760100185871124267578125
+                                                    "example": 12.3
                                                 },
                                                 "ingredient_ids": {
                                                     "type": "array",
@@ -1039,7 +1039,7 @@
                                                 "total_amount": {
                                                     "type": "number",
                                                     "format": "float",
-                                                    "example": 12.300000000000000710542735760100185871124267578125
+                                                    "example": 12.3
                                                 },
                                                 "ingredient_ids": {
                                                     "type": "array",
@@ -1231,7 +1231,7 @@
                                                                 "price": {
                                                                     "type": "number",
                                                                     "format": "float",
-                                                                    "example": 1.1999999999999999555910790149937383830547332763671875
+                                                                    "example": 1.2
                                                                 }
                                                             },
                                                             "type": "object"
@@ -1399,7 +1399,7 @@
                                                     "price": {
                                                         "type": "number",
                                                         "format": "float",
-                                                        "example": 1.1999999999999999555910790149937383830547332763671875
+                                                        "example": 1.2
                                                     }
                                                 },
                                                 "type": "object"
@@ -1481,6 +1481,158 @@
                         "description": "Recipe not found"
                     }
                 }
+            },
+            "put": {
+                "tags": [
+                    "Recipes"
+                ],
+                "summary": "Update a recipe (admin only)",
+                "operationId": "ede6813de2058df81e1ee589dfb30346",
+                "parameters": [
+                    {
+                        "name": "recipe",
+                        "in": "path",
+                        "description": "Recipe ID",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": false,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "name": {
+                                        "type": "string",
+                                        "maxLength": 255,
+                                        "example": "Summer Greek Salad"
+                                    },
+                                    "description": {
+                                        "type": "string",
+                                        "example": "With extra basil."
+                                    },
+                                    "ingredient_ids": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "integer"
+                                        },
+                                        "example": [
+                                            1,
+                                            2,
+                                            3,
+                                            5,
+                                            16
+                                        ]
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Recipe updated",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Recipe updated successfully"
+                                        },
+                                        "recipe": {
+                                            "properties": {
+                                                "id": {
+                                                    "type": "integer",
+                                                    "example": 7
+                                                },
+                                                "name": {
+                                                    "type": "string",
+                                                    "example": "Summer Greek Salad"
+                                                },
+                                                "description": {
+                                                    "type": "string",
+                                                    "example": "With extra basil."
+                                                },
+                                                "ingredient_ids": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "integer"
+                                                    },
+                                                    "example": [
+                                                        1,
+                                                        2,
+                                                        3,
+                                                        5,
+                                                        16
+                                                    ]
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Only admins can update recipes"
+                    },
+                    "422": {
+                        "description": "Validation error"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Recipes"
+                ],
+                "summary": "Delete a recipe (admin only)",
+                "operationId": "2cb7bd084f7a7244bb371b3088b3fa07",
+                "parameters": [
+                    {
+                        "name": "recipe",
+                        "in": "path",
+                        "description": "Recipe ID",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Recipe deleted",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object"
+                                },
+                                "example": {
+                                    "message": "Recipe deleted successfully"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Only admins can delete recipes"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
             }
         }
     },
