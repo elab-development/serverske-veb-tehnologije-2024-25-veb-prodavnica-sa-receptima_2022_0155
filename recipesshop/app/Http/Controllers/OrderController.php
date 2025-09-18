@@ -115,10 +115,38 @@ class OrderController extends Controller
         ]);
     }
 
-
     /**
-     * Store a newly created resource in storage.
+     * @OA\Post(
+     *   path="/api/orders",
+     *   tags={"Orders"},
+     *   summary="Create an order from ingredient IDs (user only)",
+     *   security={{"bearerAuth":{}}},
+     *   @OA\RequestBody(
+     *     required=true,
+     *     @OA\JsonContent(
+     *       required={"ingredient_ids"},
+     *       @OA\Property(property="ingredient_ids", type="array", @OA\Items(type="integer"), example={1,2,5})
+     *     )
+     *   ),
+     *   @OA\Response(
+     *     response=201,
+     *     description="Order created",
+     *     @OA\JsonContent(
+     *       type="object",
+     *       @OA\Property(property="message", type="string", example="Order created successfully"),
+     *       @OA\Property(property="order", type="object",
+     *         @OA\Property(property="id", type="integer", example=22),
+     *         @OA\Property(property="status", type="string", example="pending"),
+     *         @OA\Property(property="total_amount", type="number", format="float", example=12.30),
+     *         @OA\Property(property="ingredient_ids", type="array", @OA\Items(type="integer"), example={1,2,5})
+     *       )
+     *     )
+     *   ),
+     *   @OA\Response(response=403, description="Only users can create orders"),
+     *   @OA\Response(response=422, description="Validation error")
+     * )
      */
+
     public function store(Request $request)
     {
         if (Auth::user()->role !== 'user') {
@@ -147,6 +175,40 @@ class OrderController extends Controller
             'order'   => new OrderResource($order),
         ], 201);
     }
+
+    /**
+     * @OA\Post(
+     *   path="/api/orders/from-recipes",
+     *   tags={"Orders"},
+     *   summary="Create an order from recipes, with include/exclude ingredients (user only)",
+     *   security={{"bearerAuth":{}}},
+     *   @OA\RequestBody(
+     *     required=true,
+     *     @OA\JsonContent(
+     *       required={"recipe_ids"},
+     *       @OA\Property(property="recipe_ids", type="array", @OA\Items(type="integer"), example={1,2}),
+     *       @OA\Property(property="include_ingredient_ids", type="array", @OA\Items(type="integer"), example={19}),
+     *       @OA\Property(property="exclude_ingredient_ids", type="array", @OA\Items(type="integer"), example={3})
+     *     )
+     *   ),
+     *   @OA\Response(
+     *     response=201,
+     *     description="Order created from recipes",
+     *     @OA\JsonContent(
+     *       type="object",
+     *       @OA\Property(property="message", type="string", example="Order created successfully from recipes"),
+     *       @OA\Property(property="order", type="object",
+     *         @OA\Property(property="id", type="integer", example=23),
+     *         @OA\Property(property="status", type="string", example="pending"),
+     *         @OA\Property(property="total_amount", type="number", format="float", example=18.40),
+     *         @OA\Property(property="ingredient_ids", type="array", @OA\Items(type="integer"), example={1,2,5,19})
+     *       )
+     *     )
+     *   ),
+     *   @OA\Response(response=403, description="Only users can create orders"),
+     *   @OA\Response(response=422, description="Selected recipes and modifiers resulted in an empty cart.")
+     * )
+     */
 
     public function storeFromRecipes(Request $request)
     {
@@ -247,16 +309,40 @@ class OrderController extends Controller
     }
 
     /**
-     * Show the form for editing the specified resource.
+     * @OA\Put(
+     *   path="/api/orders/{order}",
+     *   tags={"Orders"},
+     *   summary="Update an order (admin only)",
+     *   security={{"bearerAuth":{}}},
+     *   @OA\Parameter(
+     *     name="order", in="path", required=true, description="Order ID",
+     *     @OA\Schema(type="integer")
+     *   ),
+     *   @OA\RequestBody(
+     *     required=false,
+     *     @OA\JsonContent(
+     *       @OA\Property(property="status", type="string", enum={"pending","paid","fulfilled","cancelled"}, example="paid")
+     *     )
+     *   ),
+     *   @OA\Response(
+     *     response=200,
+     *     description="Order updated",
+     *     @OA\JsonContent(
+     *       type="object",
+     *       @OA\Property(property="message", type="string", example="Order updated successfully"),
+     *       @OA\Property(property="order", type="object",
+     *         @OA\Property(property="id", type="integer", example=22),
+     *         @OA\Property(property="status", type="string", example="paid"),
+     *         @OA\Property(property="total_amount", type="number", format="float", example=12.30),
+     *         @OA\Property(property="ingredient_ids", type="array", @OA\Items(type="integer"), example={1,2,5})
+     *       )
+     *     )
+     *   ),
+     *   @OA\Response(response=403, description="Only admins can update orders"),
+     *   @OA\Response(response=422, description="Validation error")
+     * )
      */
-    public function edit(Order $order)
-    {
-        //
-    }
 
-    /**
-     * Update the specified resource in storage.
-     */
     public function update(Request $request, Order $order)
     {
         if (Auth::user()->role !== 'admin') {
@@ -274,13 +360,5 @@ class OrderController extends Controller
             'message' => 'Order updated successfully',
             'order' => new OrderResource($order),
         ]);
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(Order $order)
-    {
-        //
     }
 }

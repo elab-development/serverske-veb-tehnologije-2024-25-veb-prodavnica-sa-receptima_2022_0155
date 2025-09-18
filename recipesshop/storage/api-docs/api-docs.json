@@ -248,7 +248,7 @@
                                                     "price": {
                                                         "type": "number",
                                                         "format": "float",
-                                                        "example": 1.2
+                                                        "example": 1.1999999999999999555910790149937383830547332763671875
                                                     }
                                                 },
                                                 "type": "object"
@@ -384,7 +384,7 @@
                                                 "price": {
                                                     "type": "number",
                                                     "format": "float",
-                                                    "example": 3.2
+                                                    "example": 3.20000000000000017763568394002504646778106689453125
                                                 }
                                             },
                                             "type": "object"
@@ -433,7 +433,7 @@
                                     "price": {
                                         "type": "number",
                                         "format": "float",
-                                        "example": 5.99
+                                        "example": 5.9900000000000002131628207280300557613372802734375
                                     }
                                 },
                                 "type": "object"
@@ -465,7 +465,7 @@
                                                 "price": {
                                                     "type": "number",
                                                     "format": "float",
-                                                    "example": 5.99
+                                                    "example": 5.9900000000000002131628207280300557613372802734375
                                                 }
                                             },
                                             "type": "object"
@@ -560,7 +560,7 @@
                                                     "total_amount": {
                                                         "type": "number",
                                                         "format": "float",
-                                                        "example": 12.3
+                                                        "example": 12.300000000000000710542735760100185871124267578125
                                                     },
                                                     "ingredient_ids": {
                                                         "type": "array",
@@ -602,6 +602,97 @@
                     },
                     "404": {
                         "description": "No orders found."
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Orders"
+                ],
+                "summary": "Create an order from ingredient IDs (user only)",
+                "operationId": "d690d6834318e9b064df441e854de8b9",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "ingredient_ids"
+                                ],
+                                "properties": {
+                                    "ingredient_ids": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "integer"
+                                        },
+                                        "example": [
+                                            1,
+                                            2,
+                                            5
+                                        ]
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Order created",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Order created successfully"
+                                        },
+                                        "order": {
+                                            "properties": {
+                                                "id": {
+                                                    "type": "integer",
+                                                    "example": 22
+                                                },
+                                                "status": {
+                                                    "type": "string",
+                                                    "example": "pending"
+                                                },
+                                                "total_amount": {
+                                                    "type": "number",
+                                                    "format": "float",
+                                                    "example": 12.300000000000000710542735760100185871124267578125
+                                                },
+                                                "ingredient_ids": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "integer"
+                                                    },
+                                                    "example": [
+                                                        1,
+                                                        2,
+                                                        5
+                                                    ]
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Only users can create orders"
+                    },
+                    "422": {
+                        "description": "Validation error"
                     }
                 },
                 "security": [
@@ -668,7 +759,7 @@
                                                     "total_amount": {
                                                         "type": "number",
                                                         "format": "float",
-                                                        "example": 8.7
+                                                        "example": 8.699999999999999289457264239899814128875732421875
                                                     },
                                                     "ingredient_ids": {
                                                         "type": "array",
@@ -695,6 +786,117 @@
                     },
                     "404": {
                         "description": "No orders found for this user."
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/orders/from-recipes": {
+            "post": {
+                "tags": [
+                    "Orders"
+                ],
+                "summary": "Create an order from recipes, with include/exclude ingredients (user only)",
+                "operationId": "96e17b7b78996e61a039e528ae28dc2f",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "recipe_ids"
+                                ],
+                                "properties": {
+                                    "recipe_ids": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "integer"
+                                        },
+                                        "example": [
+                                            1,
+                                            2
+                                        ]
+                                    },
+                                    "include_ingredient_ids": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "integer"
+                                        },
+                                        "example": [
+                                            19
+                                        ]
+                                    },
+                                    "exclude_ingredient_ids": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "integer"
+                                        },
+                                        "example": [
+                                            3
+                                        ]
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Order created from recipes",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Order created successfully from recipes"
+                                        },
+                                        "order": {
+                                            "properties": {
+                                                "id": {
+                                                    "type": "integer",
+                                                    "example": 23
+                                                },
+                                                "status": {
+                                                    "type": "string",
+                                                    "example": "pending"
+                                                },
+                                                "total_amount": {
+                                                    "type": "number",
+                                                    "format": "float",
+                                                    "example": 18.39999999999999857891452847979962825775146484375
+                                                },
+                                                "ingredient_ids": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "integer"
+                                                    },
+                                                    "example": [
+                                                        1,
+                                                        2,
+                                                        5,
+                                                        19
+                                                    ]
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Only users can create orders"
+                    },
+                    "422": {
+                        "description": "Selected recipes and modifiers resulted in an empty cart."
                     }
                 },
                 "security": [
@@ -742,7 +944,7 @@
                                                 "total_amount": {
                                                     "type": "number",
                                                     "format": "float",
-                                                    "example": 12.3
+                                                    "example": 12.300000000000000710542735760100185871124267578125
                                                 },
                                                 "ingredient_ids": {
                                                     "type": "array",
@@ -766,6 +968,104 @@
                     },
                     "403": {
                         "description": "Forbidden"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "put": {
+                "tags": [
+                    "Orders"
+                ],
+                "summary": "Update an order (admin only)",
+                "operationId": "9f326acfc8febad161872da8dc13508f",
+                "parameters": [
+                    {
+                        "name": "order",
+                        "in": "path",
+                        "description": "Order ID",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": false,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "status": {
+                                        "type": "string",
+                                        "enum": [
+                                            "pending",
+                                            "paid",
+                                            "fulfilled",
+                                            "cancelled"
+                                        ],
+                                        "example": "paid"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Order updated",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Order updated successfully"
+                                        },
+                                        "order": {
+                                            "properties": {
+                                                "id": {
+                                                    "type": "integer",
+                                                    "example": 22
+                                                },
+                                                "status": {
+                                                    "type": "string",
+                                                    "example": "paid"
+                                                },
+                                                "total_amount": {
+                                                    "type": "number",
+                                                    "format": "float",
+                                                    "example": 12.300000000000000710542735760100185871124267578125
+                                                },
+                                                "ingredient_ids": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "integer"
+                                                    },
+                                                    "example": [
+                                                        1,
+                                                        2,
+                                                        5
+                                                    ]
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Only admins can update orders"
+                    },
+                    "422": {
+                        "description": "Validation error"
                     }
                 },
                 "security": [
@@ -931,7 +1231,7 @@
                                                                 "price": {
                                                                     "type": "number",
                                                                     "format": "float",
-                                                                    "example": 1.2
+                                                                    "example": 1.1999999999999999555910790149937383830547332763671875
                                                                 }
                                                             },
                                                             "type": "object"
@@ -1099,7 +1399,7 @@
                                                     "price": {
                                                         "type": "number",
                                                         "format": "float",
-                                                        "example": 1.2
+                                                        "example": 1.1999999999999999555910790149937383830547332763671875
                                                     }
                                                 },
                                                 "type": "object"
