@@ -11,10 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('ingredients', function (Blueprint $table) {
-            $table->id();
-            $table->string('name')->unique();
-            $table->decimal('price', 12, 2);
+         Schema::create('ingredients', function (Blueprint $table) {
+            $table->bigIncrements('ingredient_id');
+            $table->string('name');
+            $table->decimal('price', 8, 2);
+            $table->string('unit');
             $table->timestamps();
         });
     }
