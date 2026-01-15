@@ -9,8 +9,21 @@ class Recipe extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['name', 'description', 'ingredient_ids'];
-    protected $casts = [
-        'ingredient_ids' => 'array',
-    ];
+    protected $fillable = ['name', 'description'];
+
+    public function ingredients()
+    {
+        return $this->belongsToMany(Ingredient::class, 'recipe_items', 'recipe_id', 'ingredient_id')
+                    ->withPivot('quantity');
+    }
+
+    public function recipeItems()
+    {
+        return $this->hasMany(RecipeItem::class, 'recipe_id', 'recipe_id');
+    }
+    
+    public function getRouteKeyName()
+    {
+        return $this->primaryKey;
+    }
 }
