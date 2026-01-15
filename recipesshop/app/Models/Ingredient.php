@@ -31,6 +31,11 @@ class Ingredient extends Model
         return $this->belongsToMany(Order::class, 'order_items', 'ingredient_id', 'order_id')
                     ->withPivot('amount', 'total_price', 'user_id');
     }
+    public function carts()
+    {
+        return $this->belongsToMany(Cart::class, 'cart_items', 'ingredient_id', 'cart_id')
+                    ->withPivot('amount');
+    }
     public function getRouteKeyName()
     {
         return $this->primaryKey;
