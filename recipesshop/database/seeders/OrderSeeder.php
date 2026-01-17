@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use App\Models\Ingredient;
 use App\Models\Order;
 use App\Models\User;
+use App\Models\OrderItem;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
@@ -15,28 +16,33 @@ class OrderSeeder extends Seeder
      */
     public function run(): void
     {
-        $users = User::where('role', 'user')->get();
-
-        foreach ($users as $user) {
-            $order1Ingredients = [1, 2, 5];
-            $order2Ingredients = [10, 14];
-
-            $total1 = Ingredient::whereIn('id', $order1Ingredients)->sum('price');
-            $total2 = Ingredient::whereIn('id', $order2Ingredients)->sum('price');
-
-            Order::create([
-                'user_id' => $user->id,
-                'ingredient_ids' => $order1Ingredients,
-                'total_amount' => $total1,
-                'status' => 'pending',
+        $users = User::all();
+        $ingredients = Ingredient::all();
+        $orders = [];
+        for ($i = 0; $i < 5; $i++) {
+            $orders[] = Order::factory()->create([
+                'user_id' => $users->random()->user_id,
             ]);
+        }
 
-            Order::create([
-                'user_id' => $user->id,
-                'ingredient_ids' => $order2Ingredients,
-                'total_amount' => $total2,
-                'status' => 'paid',
-            ]);
+        foreach ($orders as $order) {
+            $itemCount = rand(1, 5);
+            $totalPrice = 0;
+            for ($j = 0; $j < $itemCount; $j++) {
+                $ingredient = $ingredients->random();
+                $amount = rand(1, 3);
+                $price = $ingredient->price * $amount;
+                OrderItem::factory()->create([
+                    'order_id'     => $order->order_id,
+                    'user_id'      => $order->user_id,
+                    'ingredient_id'=> $ingredient->ingredient_id,
+                    'amount'       => $amount,
+                    'total_price'  => $price,
+                ]);
+                $totalPrice += $price;
+            }
+            $order->total_price = $totalPrice;
+            $order->save();
         }
     }
 }

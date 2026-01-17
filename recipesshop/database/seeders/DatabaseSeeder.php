@@ -14,18 +14,12 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        User::factory()->admin()->create([
-            'name' => 'Admin',
-            'email' => 'admin@example.com',
-            'password' => 'password',
-        ]);
-
-        User::factory(5)->create();
-
         $this->call([
+            UserSeeder::class,
             IngredientSeeder::class,
             RecipeSeeder::class,
             OrderSeeder::class,
+            CartSeeder::class,
         ]);
     }
 }
