@@ -53,13 +53,37 @@
                     }
                 },
                 "responses": {
-                    "200": {
+                    "201": {
                         "description": "User created",
                         "content": {
                             "application/json": {
                                 "schema": {
                                     "properties": {
-                                        "data": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Jane Doe registered"
+                                        },
+                                        "db_connection": {
+                                            "type": "string",
+                                            "example": "mysql"
+                                        },
+                                        "db_database": {
+                                            "type": "string",
+                                            "example": "recipes_db"
+                                        },
+                                        "db_host": {
+                                            "type": "string",
+                                            "example": "127.0.0.1"
+                                        },
+                                        "access_token": {
+                                            "type": "string",
+                                            "example": "1|uXb..."
+                                        },
+                                        "token_type": {
+                                            "type": "string",
+                                            "example": "Bearer"
+                                        },
+                                        "user": {
                                             "properties": {
                                                 "id": {
                                                     "type": "integer",
@@ -72,21 +96,9 @@
                                                 "email": {
                                                     "type": "string",
                                                     "example": "jane@example.com"
-                                                },
-                                                "role": {
-                                                    "type": "string",
-                                                    "example": "user"
                                                 }
                                             },
                                             "type": "object"
-                                        },
-                                        "access_token": {
-                                            "type": "string",
-                                            "example": "1|uXb..."
-                                        },
-                                        "token_type": {
-                                            "type": "string",
-                                            "example": "Bearer"
                                         }
                                     },
                                     "type": "object"
@@ -99,15 +111,27 @@
                         "content": {
                             "application/json": {
                                 "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Validation failed"
+                                        },
+                                        "errors": {
+                                            "type": "object",
+                                            "example": {
+                                                "email": [
+                                                    "The email has already been taken."
+                                                ]
+                                            }
+                                        }
+                                    },
                                     "type": "object"
-                                },
-                                "example": {
-                                    "email": [
-                                        "The email has already been taken."
-                                    ]
                                 }
                             }
                         }
+                    },
+                    "500": {
+                        "description": "Server error"
                     }
                 }
             }
@@ -163,6 +187,27 @@
                                         "token_type": {
                                             "type": "string",
                                             "example": "Bearer"
+                                        },
+                                        "user": {
+                                            "properties": {
+                                                "id": {
+                                                    "type": "integer",
+                                                    "example": 1
+                                                },
+                                                "name": {
+                                                    "type": "string",
+                                                    "example": "Jane Doe"
+                                                },
+                                                "email": {
+                                                    "type": "string",
+                                                    "example": "jane@example.com"
+                                                },
+                                                "role": {
+                                                    "type": "string",
+                                                    "example": "user"
+                                                }
+                                            },
+                                            "type": "object"
                                         }
                                     },
                                     "type": "object"
