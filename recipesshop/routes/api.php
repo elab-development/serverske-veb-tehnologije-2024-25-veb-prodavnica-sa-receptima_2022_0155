@@ -35,6 +35,15 @@ Route::get('/recipes/{recipe}', [RecipeController::class, 'show']);
 
 Route::get('/public/recipes', [ExternalRecipeController::class, 'search']);
 
+Route::middleware(['auth:sanctum'])->group(function () {
+    Route::get('/cart', [CartController::class, 'showMyCart']);
+    Route::post('/cart/items', [CartController::class, 'addItem']);
+    Route::put('/cart/items/{cartItem}', [CartController::class, 'updateItem']);
+    Route::delete('/cart/items/{cartItem}', [CartController::class, 'removeItem']);
+    Route::post('/cart/checkout', [CartController::class, 'checkout']); 
+    Route::post('/cart/from-recipes', [CartController::class, 'addFromRecipes']);
+});
+
 Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::post('/logout', [AuthController::class, 'logout']);
 
@@ -47,5 +56,4 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
     Route::resource('orders', OrderController::class)
         ->except(['edit', 'create', 'destroy']);
     Route::get('/users/{user}/orders', [OrderController::class, 'forUser']);
-    Route::post('/orders/from-recipes', [OrderController::class, 'storeFromRecipes']);
 });
