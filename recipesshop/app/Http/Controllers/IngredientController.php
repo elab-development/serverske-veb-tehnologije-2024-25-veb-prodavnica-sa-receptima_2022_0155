@@ -24,27 +24,23 @@ class IngredientController extends Controller
      *         type="array",
      *         @OA\Items(
      *           type="object",
-     *           @OA\Property(property="id", type="integer", example=1),
+     *           @OA\Property(property="ingredient_id", type="integer", example=1),
      *           @OA\Property(property="name", type="string", example="Tomato"),
-     *           @OA\Property(property="price", type="number", format="float", example=1.2)
+     *           @OA\Property(property="price", type="number", format="float", example=1.2),
+     *           @OA\Property(property="unit", type="string", example="kg")
      *         )
      *       )
      *     )
-     *   ),
-     *   @OA\Response(response=404, description="No ingredients found.")
+     *   )
      * )
      */
-    public function index()
+     public function index()
     {
-        $ingredients = Ingredient::orderBy('name')->get();
-
-        if ($ingredients->isEmpty()) {
-            return response()->json('No ingredients found.', 404);
-        }
+        $ingredients = Ingredient::query()->orderBy('name')->get();
 
         return response()->json([
             'ingredients' => IngredientResource::collection($ingredients),
-        ]);
+        ], 200);
     }
 
     /**
@@ -56,9 +52,10 @@ class IngredientController extends Controller
      *   @OA\RequestBody(
      *     required=true,
      *     @OA\JsonContent(
-     *       required={"name","price"},
+     *       required={"name","price","unit"},
      *       @OA\Property(property="name", type="string", maxLength=255, example="Olive Oil"),
-     *       @OA\Property(property="price", type="number", format="float", example=5.50)
+     *       @OA\Property(property="price", type="number", format="float", example=5.50),
+     *       @OA\Property(property="unit", type="string", maxLength=50, example="l")
      *     )
      *   ),
      *   @OA\Response(
@@ -69,14 +66,16 @@ class IngredientController extends Controller
      *       @OA\Property(property="message", type="string", example="Ingredient created successfully"),
      *       @OA\Property(property="ingredient",
      *         type="object",
-     *         @OA\Property(property="id", type="integer", example=20),
+     *         @OA\Property(property="ingredient_id", type="integer", example=20),
      *         @OA\Property(property="name", type="string", example="Olive Oil"),
-     *         @OA\Property(property="price", type="number", format="float", example=5.50)
+     *         @OA\Property(property="price", type="number", format="float", example=5.50),
+     *         @OA\Property(property="unit", type="string", example="l")
      *       )
      *     )
      *   ),
      *   @OA\Response(response=403, description="Only admins can create ingredients"),
-     *   @OA\Response(response=422, description="Validation error")
+     *   @OA\Response(response=422, description="Validation error"),
+     *   @OA\Response(response=401, description="Unauthenticated")
      * )
      */
     public function store(Request $request)
@@ -88,6 +87,7 @@ class IngredientController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:255|unique:ingredients,name',
             'price' => 'required|numeric|min:0',
+            'unit' => 'required|string|max:50',
         ]);
 
         $ingredient = Ingredient::create($validated);
@@ -108,7 +108,7 @@ class IngredientController extends Controller
      *     in="path",
      *     required=true,
      *     description="Ingredient ID",
-     *     @OA\Schema(type="integer")
+     *     @OA\Schema(type="integer", example=1)
      *   ),
      *   @OA\Response(
      *     response=200,
@@ -117,9 +117,10 @@ class IngredientController extends Controller
      *       type="object",
      *       @OA\Property(property="ingredient",
      *         type="object",
-     *         @OA\Property(property="id", type="integer", example=5),
+     *         @OA\Property(property="ingredient_id", type="integer", example=1),
      *         @OA\Property(property="name", type="string", example="Cheese"),
-     *         @OA\Property(property="price", type="number", format="float", example=3.20)
+     *         @OA\Property(property="price", type="number", format="float", example=3.20),
+     *         @OA\Property(property="unit", type="string", example="kg")
      *       )
      *     )
      *   ),
@@ -135,19 +136,23 @@ class IngredientController extends Controller
 
     /**
      * @OA\Put(
-     *   path="/api/ingredients/{id}",
+     *   path="/api/ingredients/{ingredient}",
      *   tags={"Ingredients"},
      *   summary="Update an ingredient (admin only)",
      *   security={{"bearerAuth":{}}},
      *   @OA\Parameter(
-     *     name="id", in="path", required=true, description="Ingredient ID",
-     *     @OA\Schema(type="integer")
+     *     name="ingredient",
+     *     in="path",
+     *     required=true,
+     *     description="Ingredient ID",
+     *     @OA\Schema(type="integer", example=20)
      *   ),
      *   @OA\RequestBody(
      *     required=false,
      *     @OA\JsonContent(
      *       @OA\Property(property="name", type="string", maxLength=255, example="Greek Olive Oil"),
-     *       @OA\Property(property="price", type="number", format="float", example=5.99)
+     *       @OA\Property(property="price", type="number", format="float", example=5.99),
+     *       @OA\Property(property="unit", type="string", maxLength=50, example="l")
      *     )
      *   ),
      *   @OA\Response(
@@ -158,14 +163,17 @@ class IngredientController extends Controller
      *       @OA\Property(property="message", type="string", example="Ingredient updated successfully"),
      *       @OA\Property(property="ingredient",
      *         type="object",
-     *         @OA\Property(property="id", type="integer", example=20),
+     *         @OA\Property(property="ingredient_id", type="integer", example=20),
      *         @OA\Property(property="name", type="string", example="Greek Olive Oil"),
-     *         @OA\Property(property="price", type="number", format="float", example=5.99)
+     *         @OA\Property(property="price", type="number", format="float", example=5.99),
+     *         @OA\Property(property="unit", type="string", example="l")
      *       )
      *     )
      *   ),
      *   @OA\Response(response=403, description="Only admins can update ingredients"),
-     *   @OA\Response(response=422, description="Validation error")
+     *   @OA\Response(response=422, description="Validation error"),
+     *   @OA\Response(response=401, description="Unauthenticated"),
+     *   @OA\Response(response=404, description="Ingredient not found")
      * )
      */
     public function update(Request $request, Ingredient $ingredient)
@@ -175,8 +183,9 @@ class IngredientController extends Controller
         }
 
         $validated = $request->validate([
-            'name' => 'sometimes|string|max:255|unique:ingredients,name,' . $ingredient->id,
+            'name' => 'sometimes|string|max:255|unique:ingredients,name,' . $ingredient->id. ',ingredient_id',
             'price' => 'sometimes|numeric|min:0',
+            'unit' => 'sometimes|string|max:50',
         ]);
 
         $ingredient->update($validated);
@@ -189,20 +198,25 @@ class IngredientController extends Controller
 
     /**
      * @OA\Delete(
-     *   path="/api/ingredients/{id}",
+     *   path="/api/ingredients/{ingredient}",
      *   tags={"Ingredients"},
      *   summary="Delete an ingredient (admin only)",
      *   security={{"bearerAuth":{}}},
      *   @OA\Parameter(
-     *     name="id", in="path", required=true, description="Ingredient ID",
-     *     @OA\Schema(type="integer")
+     *     name="ingredient",
+     *     in="path",
+     *     required=true,
+     *     description="Ingredient ID",
+     *     @OA\Schema(type="integer", example=20)
      *   ),
      *   @OA\Response(
      *     response=200,
      *     description="Ingredient deleted",
      *     @OA\JsonContent(type="object", example={"message":"Ingredient deleted successfully"})
      *   ),
-     *   @OA\Response(response=403, description="Only admins can delete ingredients")
+     *   @OA\Response(response=403, description="Only admins can delete ingredients"),
+     *   @OA\Response(response=401, description="Unauthenticated"),
+     *   @OA\Response(response=404, description="Ingredient not found")
      * )
      */
     public function destroy(Ingredient $ingredient)

@@ -2,13 +2,12 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Resources\IngredientResource;
 use App\Http\Resources\RecipeResource;
-use App\Models\Ingredient;
 use App\Models\Recipe;
+use App\Models\RecipeItem;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
 class RecipeController extends Controller
@@ -17,18 +16,19 @@ class RecipeController extends Controller
      * @OA\Get(
      *   path="/api/recipes",
      *   tags={"Recipes"},
-     *   summary="List recipes (with search, filters, sort, pagination)",
-     *   @OA\Parameter(name="search", in="query", required=false, @OA\Schema(type="string"), description="Search in name, description and ingredient names"),
-     *   @OA\Parameter(name="ingredients_any", in="query", required=false, @OA\Schema(type="string"), description="CSV of ingredient IDs; recipe must contain ANY of them"),
-     *   @OA\Parameter(name="ingredients_all", in="query", required=false, @OA\Schema(type="string"), description="CSV of ingredient IDs; recipe must contain ALL of them"),
-     *   @OA\Parameter(name="ingredients_exclude", in="query", required=false, @OA\Schema(type="string"), description="CSV of ingredient IDs to exclude"),
+     *   summary="List recipes (search, filters, sort, pagination)",
+     *   description="Returns paginated recipes. Supports searching in recipe name/description and ingredient names via relationship.",
+     *   @OA\Parameter(name="search", in="query", required=false, @OA\Schema(type="string", maxLength=200), description="Search in name, description, and ingredient names"),
+     *   @OA\Parameter(name="ingredients_any", in="query", required=false, @OA\Schema(type="string"), description="CSV of ingredient_ids; recipe must contain ANY of them"),
+     *   @OA\Parameter(name="ingredients_all", in="query", required=false, @OA\Schema(type="string"), description="CSV of ingredient_ids; recipe must contain ALL of them"),
+     *   @OA\Parameter(name="ingredients_exclude", in="query", required=false, @OA\Schema(type="string"), description="CSV of ingredient_ids; recipe must NOT contain any of them"),
      *   @OA\Parameter(
      *     name="sort", in="query", required=false,
      *     @OA\Schema(type="string", enum={"name","-name","created_at","-created_at","updated_at","-updated_at","ingredients_count","-ingredients_count"}),
      *     description="Sort field (prefix with - for DESC)"
      *   ),
      *   @OA\Parameter(name="per_page", in="query", required=false, @OA\Schema(type="integer", minimum=1, maximum=100), description="Items per page (default 15)"),
-     *   @OA\Parameter(name="page", in="query", required=false, @OA\Schema(type="integer", minimum=1), description="Page number (default 1)"),
+     *   @OA\Parameter(name="page", in="query", required=false, @OA\Schema(type="integer", minimum=1), description="Page number"),
      *   @OA\Response(
      *     response=200,
      *     description="OK",
@@ -42,27 +42,29 @@ class RecipeController extends Controller
      *       ),
      *       @OA\Property(property="recipes", type="array",
      *         @OA\Items(type="object",
-     *           @OA\Property(property="id", type="integer", example=7),
+     *           @OA\Property(property="recipe_id", type="integer", example=7),
      *           @OA\Property(property="name", type="string", example="Greek Salad"),
      *           @OA\Property(property="description", type="string", example="Fresh and easy."),
-     *           @OA\Property(property="ingredient_ids", type="array", @OA\Items(type="integer"), example={1,2,3,5}),
+     *           @OA\Property(property="ingredients_count", type="integer", example=4),
      *           @OA\Property(property="ingredients", type="array",
      *             @OA\Items(type="object",
-     *               @OA\Property(property="id", type="integer", example=1),
+     *               @OA\Property(property="ingredient_id", type="integer", example=1),
      *               @OA\Property(property="name", type="string", example="Tomato"),
-     *               @OA\Property(property="price", type="number", format="float", example=1.20)
+     *               @OA\Property(property="price", type="number", format="float", example=1.20),
+     *               @OA\Property(property="unit", type="string", example="kg"),
+     *               @OA\Property(property="quantity", type="integer", example=2, description="Pivot quantity (recipe_items.quantity)")
      *             )
      *           )
      *         )
      *       )
      *     )
      *   ),
-     *   @OA\Response(response=404, description="No recipes found.")
+     *   @OA\Response(response=422, description="Validation error")
      * )
      */
-    public function index(Request $request)
+     public function index(Request $request)
     {
-        $v = Validator::make($request->all(), [
+        $request->validate([
             'search' => ['sometimes', 'string', 'max:200'],
             'ingredients_any' => ['sometimes', 'string'],
             'ingredients_all' => ['sometimes', 'string'],
@@ -71,12 +73,10 @@ class RecipeController extends Controller
             'per_page' => ['sometimes', 'integer', 'min:1', 'max:100'],
             'page' => ['sometimes', 'integer', 'min:1'],
         ]);
-        $v->validate();
 
         $perPage = (int) $request->input('per_page', 15);
-        $page    = (int) $request->input('page', 1);
-        $search  = trim((string) $request->input('search', ''));
         $sort    = (string) $request->input('sort', 'name');
+        $search  = trim((string) $request->input('search', ''));
 
         $parseIds = fn($csv) => array_values(array_unique(
             array_filter(array_map('intval', explode(',', (string) $csv)), fn($i) => $i > 0)
@@ -86,71 +86,48 @@ class RecipeController extends Controller
         $idsAll = $parseIds($request->input('ingredients_all'));
         $idsExclude = $parseIds($request->input('ingredients_exclude'));
 
-        $q = Recipe::query();
+        $q = Recipe::query()->with(['ingredients']); 
 
         if ($search !== '') {
             $escaped = str_replace(['%', '_'], ['\%', '\_'], $search);
 
-            $matchedIngredientIds = Ingredient::query()
-                ->where('name', 'like', "%{$escaped}%")
-                ->pluck('id')
-                ->all();
-
-            $q->where(function ($w) use ($search, $matchedIngredientIds) {
-                $w->where('name', 'like', "%{$search}%")
-                    ->orWhere('description', 'like', "%{$search}%");
-
-                if (!empty($matchedIngredientIds)) {
-                    $w->orWhere(function ($ww) use ($matchedIngredientIds) {
-                        foreach ($matchedIngredientIds as $id) {
-                            $ww->orWhereRaw('JSON_CONTAINS(ingredient_ids, ?)', [json_encode($id)]);
-                        }
-                    });
-                }
+            $q->where(function ($w) use ($escaped) {
+                $w->where('name', 'like', "%{$escaped}%")
+                  ->orWhere('description', 'like', "%{$escaped}%")
+                  ->orWhereHas('ingredients', function ($qi) use ($escaped) {
+                      $qi->where('name', 'like', "%{$escaped}%");
+                  });
             });
         }
 
         if (!empty($idsAny)) {
-            $q->where(function ($w) use ($idsAny) {
-                foreach ($idsAny as $id) {
-                    $w->orWhereRaw('JSON_CONTAINS(ingredient_ids, ?)', [json_encode($id)]);
-                }
-            });
+            $q->whereHas('ingredients', fn($qi) => $qi->whereIn('ingredients.ingredient_id', $idsAny));
         }
 
         if (!empty($idsAll)) {
             foreach ($idsAll as $id) {
-                $q->whereRaw('JSON_CONTAINS(ingredient_ids, ?)', [json_encode($id)]);
+                $q->whereHas('ingredients', fn($qi) => $qi->where('ingredients.ingredient_id', $id));
             }
         }
 
         if (!empty($idsExclude)) {
-            foreach ($idsExclude as $id) {
-                $q->whereRaw('NOT JSON_CONTAINS(ingredient_ids, ?)', [json_encode($id)]);
-            }
+            $q->whereDoesntHave('ingredients', fn($qi) => $qi->whereIn('ingredients.ingredient_id', $idsExclude));
         }
+
+        $q->withCount('ingredients');
 
         $direction = Str::startsWith($sort, '-') ? 'desc' : 'asc';
         $field = ltrim($sort, '-');
 
-        switch ($field) {
-            case 'name':
-            case 'created_at':
-            case 'updated_at':
-                $q->orderBy($field, $direction);
-                break;
-            case 'ingredients_count':
-                $q->orderByRaw('JSON_LENGTH(ingredient_ids) ' . $direction);
-                break;
-            default:
-                $q->orderBy('name', 'asc');
+        if (in_array($field, ['name', 'created_at', 'updated_at'], true)) {
+            $q->orderBy($field, $direction);
+        } elseif ($field === 'ingredients_count') {
+            $q->orderBy('ingredients_count', $direction);
+        } else {
+            $q->orderBy('name', 'asc');
         }
 
-        $recipes = $q->paginate($perPage, ['*'], 'page', $page);
-
-        if ($recipes->isEmpty()) {
-            return response()->json('No recipes found.', 404);
-        }
+        $recipes = $q->paginate($perPage);
 
         return response()->json([
             'meta'    => [
@@ -159,53 +136,54 @@ class RecipeController extends Controller
                 'total' => $recipes->total(),
                 'last_page' => $recipes->lastPage(),
             ],
-            'recipes' => RecipeResource::collection($recipes),
-        ]);
+            'recipes' => RecipeResource::collection($recipes->getCollection()),
+        ], 200);
     }
     /**
      * @OA\Get(
      *   path="/api/recipes/{recipe}/ingredients",
      *   tags={"Recipes"},
-     *   summary="Get the ingredients for a specific recipe",
+     *   summary="Get ingredients for a recipe (with quantity)",
      *   @OA\Parameter(
-     *     name="recipe", in="path", required=true, description="Recipe ID",
-     *     @OA\Schema(type="integer")
+     *     name="recipe", in="path", required=true, description="Recipe ID (recipe_id)",
+     *     @OA\Schema(type="integer", example=7)
      *   ),
      *   @OA\Response(
      *     response=200,
      *     description="OK",
      *     @OA\JsonContent(
      *       type="object",
-     *       @OA\Property(property="recipe_id", type="integer", example=5),
+     *       @OA\Property(property="recipe_id", type="integer", example=7),
      *       @OA\Property(property="ingredients", type="array",
      *         @OA\Items(type="object",
-     *           @OA\Property(property="id", type="integer", example=1),
+     *           @OA\Property(property="ingredient_id", type="integer", example=1),
      *           @OA\Property(property="name", type="string", example="Tomato"),
-     *           @OA\Property(property="price", type="number", format="float", example=1.20)
+     *           @OA\Property(property="price", type="number", format="float", example=1.20),
+     *           @OA\Property(property="unit", type="string", example="kg"),
+     *           @OA\Property(property="quantity", type="integer", example=2)
      *         )
      *       )
      *     )
      *   ),
-     *   @OA\Response(response=404, description="No ingredients found for this recipe.")
+     *   @OA\Response(response=404, description="Recipe not found")
      * )
      */
     public function ingredients(Recipe $recipe)
     {
-        $ids = $recipe->ingredient_ids ?? [];
-
-        if (empty($ids)) {
-            return response()->json('No ingredients found for this recipe.', 404);
-        }
-
-        $ingredients = Ingredient::whereIn('id', $ids)->get();
-        $ingredients = $ingredients->sortBy(function ($ing) use ($ids) {
-            return array_search($ing->id, $ids, true);
-        })->values();
+        $recipe->load('ingredients');
 
         return response()->json([
-            'recipe_id'   => $recipe->id,
-            'ingredients' => IngredientResource::collection($ingredients),
-        ]);
+            'recipe_id' => $recipe->recipe_id,
+            'ingredients' => $recipe->ingredients->map(function ($ing) {
+                return [
+                    'ingredient_id' => $ing->ingredient_id,
+                    'name' => $ing->name,
+                    'price' => (float) $ing->price,
+                    'unit' => $ing->unit,
+                    'quantity' => (int) ($ing->pivot->quantity ?? 1),
+                ];
+            })->values(),
+        ], 200);
     }
 
     /**
@@ -222,13 +200,34 @@ class RecipeController extends Controller
      *   tags={"Recipes"},
      *   summary="Create a new recipe (admin only)",
      *   security={{"bearerAuth":{}}},
+     *   description="You can send either items[] (ingredient_id + quantity) OR ingredient_ids[] (quantity defaults to 1).",
      *   @OA\RequestBody(
      *     required=true,
      *     @OA\JsonContent(
-     *       required={"name","ingredient_ids"},
-     *       @OA\Property(property="name", type="string", maxLength=255, example="Greek Salad"),
-     *       @OA\Property(property="description", type="string", example="Fresh and easy."),
-     *       @OA\Property(property="ingredient_ids", type="array", @OA\Items(type="integer"), example={1,2,3,5})
+     *       required={"name"},
+     *       oneOf={
+     *         @OA\Schema(
+     *           required={"name","items"},
+     *           @OA\Property(property="name", type="string", maxLength=255, example="Greek Salad"),
+     *           @OA\Property(property="description", type="string", nullable=true, example="Fresh and easy."),
+     *           @OA\Property(
+     *             property="items",
+     *             type="array",
+     *             @OA\Items(
+     *               type="object",
+     *               required={"ingredient_id","quantity"},
+     *               @OA\Property(property="ingredient_id", type="integer", example=1),
+     *               @OA\Property(property="quantity", type="integer", minimum=1, example=2)
+     *             )
+     *           )
+     *         ),
+     *         @OA\Schema(
+     *           required={"name","ingredient_ids"},
+     *           @OA\Property(property="name", type="string", maxLength=255, example="Simple Salad"),
+     *           @OA\Property(property="description", type="string", nullable=true, example="No quantities provided."),
+     *           @OA\Property(property="ingredient_ids", type="array", @OA\Items(type="integer"), example={1,2,3})
+     *         )
+     *       }
      *     )
      *   ),
      *   @OA\Response(
@@ -237,40 +236,56 @@ class RecipeController extends Controller
      *     @OA\JsonContent(
      *       type="object",
      *       @OA\Property(property="message", type="string", example="Recipe created successfully"),
-     *       @OA\Property(property="recipe",
-     *         type="object",
-     *         @OA\Property(property="id", type="integer", example=12),
-     *         @OA\Property(property="name", type="string", example="Greek Salad"),
-     *         @OA\Property(property="description", type="string", example="Fresh and easy."),
-     *         @OA\Property(property="ingredient_ids", type="array", @OA\Items(type="integer"), example={1,2,3,5})
-     *       )
+     *       @OA\Property(property="recipe", type="object")
      *     )
      *   ),
      *   @OA\Response(response=403, description="Only admins can create recipes"),
-     *   @OA\Response(response=422, description="Validation error")
+     *   @OA\Response(response=422, description="Validation error"),
+     *   @OA\Response(response=401, description="Unauthenticated")
      * )
      */
     public function store(Request $request)
     {
-        if (Auth::user()->role !== 'admin') {
-            return response()->json(['error' => 'Only admins can create recipes'], 403);
+        $user = Auth::user();
+        if (!$user || $user->role !== 'admin') {
+            return response()->json(['message' => 'Only admins can create recipes'], 403);
         }
 
         $validated = $request->validate([
             'name' => 'required|string|max:255|unique:recipes,name',
             'description' => 'nullable|string',
-            'ingredient_ids' => 'required|array|min:1',
-            'ingredient_ids.*' => 'integer|distinct|exists:ingredients,id',
+
+            'items' => 'sometimes|array|min:1',
+            'items.*.ingredient_id' => 'required_with:items|integer|distinct|exists:ingredients,ingredient_id',
+            'items.*.quantity' => 'required_with:items|integer|min:1',
+
+            'ingredient_ids' => 'sometimes|array|min:1',
+            'ingredient_ids.*' => 'integer|distinct|exists:ingredients,ingredient_id',
         ]);
 
-        $validated['ingredient_ids'] = array_values(array_unique($validated['ingredient_ids']));
+        $items = $this->normalizeRecipeItems($request);
 
-        $recipe = Recipe::create($validated);
+        return DB::transaction(function () use ($validated, $items) {
+            $recipe = Recipe::create([
+                'name' => $validated['name'],
+                'description' => $validated['description'] ?? null,
+            ]);
 
-        return response()->json([
-            'message' => 'Recipe created successfully',
-            'recipe' => new RecipeResource($recipe),
-        ], 201);
+            foreach ($items as $row) {
+                RecipeItem::create([
+                    'recipe_id' => $recipe->recipe_id,
+                    'ingredient_id' => $row['ingredient_id'],
+                    'quantity' => $row['quantity'],
+                ]);
+            }
+
+            $recipe->load('ingredients');
+
+            return response()->json([
+                'message' => 'Recipe created successfully',
+                'recipe' => new RecipeResource($recipe),
+            ], 201);
+        });
     }
     /**
      * @OA\Get(
@@ -278,20 +293,27 @@ class RecipeController extends Controller
      *   tags={"Recipes"},
      *   summary="Get a single recipe",
      *   @OA\Parameter(
-     *     name="recipe", in="path", required=true, description="Recipe ID",
-     *     @OA\Schema(type="integer")
+     *     name="recipe", in="path", required=true, description="Recipe ID (recipe_id)",
+     *     @OA\Schema(type="integer", example=7)
      *   ),
      *   @OA\Response(
      *     response=200,
      *     description="OK",
      *     @OA\JsonContent(
      *       type="object",
-     *       @OA\Property(property="recipe",
-     *         type="object",
-     *         @OA\Property(property="id", type="integer", example=7),
+     *       @OA\Property(property="recipe", type="object",
+     *         @OA\Property(property="recipe_id", type="integer", example=7),
      *         @OA\Property(property="name", type="string", example="Greek Salad"),
      *         @OA\Property(property="description", type="string", example="Fresh and easy."),
-     *         @OA\Property(property="ingredient_ids", type="array", @OA\Items(type="integer"), example={1,2,3,5})
+     *         @OA\Property(property="ingredients", type="array",
+     *           @OA\Items(type="object",
+     *             @OA\Property(property="ingredient_id", type="integer", example=1),
+     *             @OA\Property(property="name", type="string", example="Tomato"),
+     *             @OA\Property(property="price", type="number", format="float", example=1.20),
+     *             @OA\Property(property="unit", type="string", example="kg"),
+     *             @OA\Property(property="quantity", type="integer", example=2)
+     *           )
+     *         )
      *       )
      *     )
      *   ),
@@ -300,9 +322,11 @@ class RecipeController extends Controller
      */
     public function show(Recipe $recipe)
     {
+        $recipe->load('ingredients');
+
         return response()->json([
             'recipe' => new RecipeResource($recipe),
-        ]);
+        ], 200);
     }
 
     /**
@@ -319,16 +343,27 @@ class RecipeController extends Controller
      *   tags={"Recipes"},
      *   summary="Update a recipe (admin only)",
      *   security={{"bearerAuth":{}}},
+     *   description="If items or ingredient_ids are provided, existing recipe_items are deleted and replaced with new ones.",
      *   @OA\Parameter(
-     *     name="recipe", in="path", required=true, description="Recipe ID",
-     *     @OA\Schema(type="integer")
+     *     name="recipe", in="path", required=true, description="Recipe ID (recipe_id)",
+     *     @OA\Schema(type="integer", example=7)
      *   ),
      *   @OA\RequestBody(
      *     required=false,
      *     @OA\JsonContent(
-     *       @OA\Property(property="name", type="string", maxLength=255, example="Summer Greek Salad"),
-     *       @OA\Property(property="description", type="string", example="With extra basil."),
-     *       @OA\Property(property="ingredient_ids", type="array", @OA\Items(type="integer"), example={1,2,3,5,16})
+     *       @OA\Property(property="name", type="string", maxLength=255, example="Updated Salad"),
+     *       @OA\Property(property="description", type="string", nullable=true, example="Updated description."),
+     *       @OA\Property(
+     *         property="items",
+     *         type="array",
+     *         @OA\Items(
+     *           type="object",
+     *           required={"ingredient_id","quantity"},
+     *           @OA\Property(property="ingredient_id", type="integer", example=1),
+     *           @OA\Property(property="quantity", type="integer", minimum=1, example=3)
+     *         )
+     *       ),
+     *       @OA\Property(property="ingredient_ids", type="array", @OA\Items(type="integer"), example={1,2,3})
      *     )
      *   ),
      *   @OA\Response(
@@ -337,42 +372,63 @@ class RecipeController extends Controller
      *     @OA\JsonContent(
      *       type="object",
      *       @OA\Property(property="message", type="string", example="Recipe updated successfully"),
-     *       @OA\Property(property="recipe",
-     *         type="object",
-     *         @OA\Property(property="id", type="integer", example=7),
-     *         @OA\Property(property="name", type="string", example="Summer Greek Salad"),
-     *         @OA\Property(property="description", type="string", example="With extra basil."),
-     *         @OA\Property(property="ingredient_ids", type="array", @OA\Items(type="integer"), example={1,2,3,5,16})
-     *       )
+     *       @OA\Property(property="recipe", type="object")
      *     )
      *   ),
      *   @OA\Response(response=403, description="Only admins can update recipes"),
-     *   @OA\Response(response=422, description="Validation error")
+     *   @OA\Response(response=422, description="Validation error"),
+     *   @OA\Response(response=401, description="Unauthenticated"),
+     *   @OA\Response(response=404, description="Recipe not found")
      * )
      */
     public function update(Request $request, Recipe $recipe)
     {
-        if (Auth::user()->role !== 'admin') {
-            return response()->json(['error' => 'Only admins can update recipes'], 403);
+        $user = Auth::user();
+        if (!$user || $user->role !== 'admin') {
+            return response()->json(['message' => 'Only admins can update recipes'], 403);
         }
 
         $validated = $request->validate([
-            'name' => 'sometimes|string|max:255|unique:recipes,name,' . $recipe->id,
+            'name' => 'sometimes|string|max:255|unique:recipes,name,' . $recipe->recipe_id . ',recipe_id',
             'description' => 'sometimes|nullable|string',
+
+            'items' => 'sometimes|array|min:1',
+            'items.*.ingredient_id' => 'required_with:items|integer|distinct|exists:ingredients,ingredient_id',
+            'items.*.quantity' => 'required_with:items|integer|min:1',
+
             'ingredient_ids' => 'sometimes|array|min:1',
-            'ingredient_ids.*' => 'integer|distinct|exists:ingredients,id',
+            'ingredient_ids.*' => 'integer|distinct|exists:ingredients,ingredient_id',
         ]);
 
-        if (isset($validated['ingredient_ids'])) {
-            $validated['ingredient_ids'] = array_values(array_unique($validated['ingredient_ids']));
-        }
+        $hasItems = $request->has('items') || $request->has('ingredient_ids');
 
-        $recipe->update($validated);
+        return DB::transaction(function () use ($recipe, $validated, $hasItems, $request) {
+            $recipe->update([
+                'name' => $validated['name'] ?? $recipe->name,
+                'description' => array_key_exists('description', $validated) ? $validated['description'] : $recipe->description,
+            ]);
 
-        return response()->json([
-            'message' => 'Recipe updated successfully',
-            'recipe' => new RecipeResource($recipe),
-        ]);
+            if ($hasItems) {
+                $items = $this->normalizeRecipeItems($request);
+
+                RecipeItem::where('recipe_id', $recipe->recipe_id)->delete();
+
+                foreach ($items as $row) {
+                    RecipeItem::create([
+                        'recipe_id' => $recipe->recipe_id,
+                        'ingredient_id' => $row['ingredient_id'],
+                        'quantity' => $row['quantity'],
+                    ]);
+                }
+            }
+
+            $recipe->load('ingredients');
+
+            return response()->json([
+                'message' => 'Recipe updated successfully',
+                'recipe' => new RecipeResource($recipe),
+            ], 200);
+        });
     }
 
     /**
@@ -382,25 +438,47 @@ class RecipeController extends Controller
      *   summary="Delete a recipe (admin only)",
      *   security={{"bearerAuth":{}}},
      *   @OA\Parameter(
-     *     name="recipe", in="path", required=true, description="Recipe ID",
-     *     @OA\Schema(type="integer")
+     *     name="recipe", in="path", required=true, description="Recipe ID (recipe_id)",
+     *     @OA\Schema(type="integer", example=7)
      *   ),
      *   @OA\Response(
      *     response=200,
      *     description="Recipe deleted",
      *     @OA\JsonContent(type="object", example={"message":"Recipe deleted successfully"})
      *   ),
-     *   @OA\Response(response=403, description="Only admins can delete recipes")
+     *   @OA\Response(response=403, description="Only admins can delete recipes"),
+     *   @OA\Response(response=401, description="Unauthenticated"),
+     *   @OA\Response(response=404, description="Recipe not found")
      * )
      */
     public function destroy(Recipe $recipe)
     {
-        if (Auth::user()->role !== 'admin') {
-            return response()->json(['error' => 'Only admins can delete recipes'], 403);
+        $user = Auth::user();
+        if (!$user || $user->role !== 'admin') {
+            return response()->json(['message' => 'Only admins can delete recipes'], 403);
         }
 
         $recipe->delete();
 
-        return response()->json(['message' => 'Recipe deleted successfully']);
+        return response()->json(['message' => 'Recipe deleted successfully'], 200);
+    }
+
+    private function normalizeRecipeItems(Request $request): array
+    {
+        if ($request->has('items')) {
+            $items = $request->input('items', []);
+            return collect($items)
+                ->map(fn($x) => [
+                    'ingredient_id' => (int) $x['ingredient_id'],
+                    'quantity' => (int) $x['quantity'],
+                ])
+                ->values()
+                ->all();
+        }
+
+        $ids = $request->input('ingredient_ids', []);
+        $ids = array_values(array_unique(array_map('intval', $ids)));
+
+        return array_map(fn($id) => ['ingredient_id' => $id, 'quantity' => 1], $ids);
     }
 }

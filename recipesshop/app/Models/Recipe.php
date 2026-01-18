@@ -10,6 +10,7 @@ class Recipe extends Model
     use HasFactory;
 
     protected $fillable = ['name', 'description'];
+    protected $primaryKey = 'recipe_id';
 
     public function ingredients()
     {

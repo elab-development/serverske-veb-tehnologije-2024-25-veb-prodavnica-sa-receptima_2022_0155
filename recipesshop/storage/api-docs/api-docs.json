@@ -444,7 +444,7 @@
                                             "type": "array",
                                             "items": {
                                                 "properties": {
-                                                    "id": {
+                                                    "ingredient_id": {
                                                         "type": "integer",
                                                         "example": 1
                                                     },
@@ -456,6 +456,10 @@
                                                         "type": "number",
                                                         "format": "float",
                                                         "example": 1.2
+                                                    },
+                                                    "unit": {
+                                                        "type": "string",
+                                                        "example": "kg"
                                                     }
                                                 },
                                                 "type": "object"
@@ -466,9 +470,6 @@
                                 }
                             }
                         }
-                    },
-                    "404": {
-                        "description": "No ingredients found."
                     }
                 }
             },
@@ -485,7 +486,8 @@
                             "schema": {
                                 "required": [
                                     "name",
-                                    "price"
+                                    "price",
+                                    "unit"
                                 ],
                                 "properties": {
                                     "name": {
@@ -497,6 +499,11 @@
                                         "type": "number",
                                         "format": "float",
                                         "example": 5.5
+                                    },
+                                    "unit": {
+                                        "type": "string",
+                                        "maxLength": 50,
+                                        "example": "l"
                                     }
                                 },
                                 "type": "object"
@@ -517,7 +524,7 @@
                                         },
                                         "ingredient": {
                                             "properties": {
-                                                "id": {
+                                                "ingredient_id": {
                                                     "type": "integer",
                                                     "example": 20
                                                 },
@@ -529,6 +536,10 @@
                                                     "type": "number",
                                                     "format": "float",
                                                     "example": 5.5
+                                                },
+                                                "unit": {
+                                                    "type": "string",
+                                                    "example": "l"
                                                 }
                                             },
                                             "type": "object"
@@ -544,6 +555,9 @@
                     },
                     "422": {
                         "description": "Validation error"
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
                     }
                 },
                 "security": [
@@ -567,7 +581,8 @@
                         "description": "Ingredient ID",
                         "required": true,
                         "schema": {
-                            "type": "integer"
+                            "type": "integer",
+                            "example": 1
                         }
                     }
                 ],
@@ -580,9 +595,9 @@
                                     "properties": {
                                         "ingredient": {
                                             "properties": {
-                                                "id": {
+                                                "ingredient_id": {
                                                     "type": "integer",
-                                                    "example": 5
+                                                    "example": 1
                                                 },
                                                 "name": {
                                                     "type": "string",
@@ -592,6 +607,10 @@
                                                     "type": "number",
                                                     "format": "float",
                                                     "example": 3.2
+                                                },
+                                                "unit": {
+                                                    "type": "string",
+                                                    "example": "kg"
                                                 }
                                             },
                                             "type": "object"
@@ -606,23 +625,22 @@
                         "description": "Ingredient not found"
                     }
                 }
-            }
-        },
-        "/api/ingredients/{id}": {
+            },
             "put": {
                 "tags": [
                     "Ingredients"
                 ],
                 "summary": "Update an ingredient (admin only)",
-                "operationId": "b2b705f67b293905971309a7927b3636",
+                "operationId": "be01c11e6c94a5b354f1c07e4e511655",
                 "parameters": [
                     {
-                        "name": "id",
+                        "name": "ingredient",
                         "in": "path",
                         "description": "Ingredient ID",
                         "required": true,
                         "schema": {
-                            "type": "integer"
+                            "type": "integer",
+                            "example": 20
                         }
                     }
                 ],
@@ -641,6 +659,11 @@
                                         "type": "number",
                                         "format": "float",
                                         "example": 5.99
+                                    },
+                                    "unit": {
+                                        "type": "string",
+                                        "maxLength": 50,
+                                        "example": "l"
                                     }
                                 },
                                 "type": "object"
@@ -661,7 +684,7 @@
                                         },
                                         "ingredient": {
                                             "properties": {
-                                                "id": {
+                                                "ingredient_id": {
                                                     "type": "integer",
                                                     "example": 20
                                                 },
@@ -673,6 +696,10 @@
                                                     "type": "number",
                                                     "format": "float",
                                                     "example": 5.99
+                                                },
+                                                "unit": {
+                                                    "type": "string",
+                                                    "example": "l"
                                                 }
                                             },
                                             "type": "object"
@@ -688,6 +715,12 @@
                     },
                     "422": {
                         "description": "Validation error"
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
+                    },
+                    "404": {
+                        "description": "Ingredient not found"
                     }
                 },
                 "security": [
@@ -701,15 +734,16 @@
                     "Ingredients"
                 ],
                 "summary": "Delete an ingredient (admin only)",
-                "operationId": "d7a227e0854bd498dfe1c1b9155b4bd0",
+                "operationId": "ee34994a8022f644f24d9f73fdcbab5a",
                 "parameters": [
                     {
-                        "name": "id",
+                        "name": "ingredient",
                         "in": "path",
                         "description": "Ingredient ID",
                         "required": true,
                         "schema": {
-                            "type": "integer"
+                            "type": "integer",
+                            "example": 20
                         }
                     }
                 ],
@@ -729,6 +763,12 @@
                     },
                     "403": {
                         "description": "Only admins can delete ingredients"
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
+                    },
+                    "404": {
+                        "description": "Ingredient not found"
                     }
                 },
                 "security": [
@@ -1287,22 +1327,24 @@
                 "tags": [
                     "Recipes"
                 ],
-                "summary": "List recipes (with search, filters, sort, pagination)",
+                "summary": "List recipes (search, filters, sort, pagination)",
+                "description": "Returns paginated recipes. Supports searching in recipe name/description and ingredient names via relationship.",
                 "operationId": "8b9e556d4d747bd60232961951494bfb",
                 "parameters": [
                     {
                         "name": "search",
                         "in": "query",
-                        "description": "Search in name, description and ingredient names",
+                        "description": "Search in name, description, and ingredient names",
                         "required": false,
                         "schema": {
-                            "type": "string"
+                            "type": "string",
+                            "maxLength": 200
                         }
                     },
                     {
                         "name": "ingredients_any",
                         "in": "query",
-                        "description": "CSV of ingredient IDs; recipe must contain ANY of them",
+                        "description": "CSV of ingredient_ids; recipe must contain ANY of them",
                         "required": false,
                         "schema": {
                             "type": "string"
@@ -1311,7 +1353,7 @@
                     {
                         "name": "ingredients_all",
                         "in": "query",
-                        "description": "CSV of ingredient IDs; recipe must contain ALL of them",
+                        "description": "CSV of ingredient_ids; recipe must contain ALL of them",
                         "required": false,
                         "schema": {
                             "type": "string"
@@ -1320,7 +1362,7 @@
                     {
                         "name": "ingredients_exclude",
                         "in": "query",
-                        "description": "CSV of ingredient IDs to exclude",
+                        "description": "CSV of ingredient_ids; recipe must NOT contain any of them",
                         "required": false,
                         "schema": {
                             "type": "string"
@@ -1359,7 +1401,7 @@
                     {
                         "name": "page",
                         "in": "query",
-                        "description": "Page number (default 1)",
+                        "description": "Page number",
                         "required": false,
                         "schema": {
                             "type": "integer",
@@ -1399,7 +1441,7 @@
                                             "type": "array",
                                             "items": {
                                                 "properties": {
-                                                    "id": {
+                                                    "recipe_id": {
                                                         "type": "integer",
                                                         "example": 7
                                                     },
@@ -1411,23 +1453,15 @@
                                                         "type": "string",
                                                         "example": "Fresh and easy."
                                                     },
-                                                    "ingredient_ids": {
-                                                        "type": "array",
-                                                        "items": {
-                                                            "type": "integer"
-                                                        },
-                                                        "example": [
-                                                            1,
-                                                            2,
-                                                            3,
-                                                            5
-                                                        ]
+                                                    "ingredients_count": {
+                                                        "type": "integer",
+                                                        "example": 4
                                                     },
                                                     "ingredients": {
                                                         "type": "array",
                                                         "items": {
                                                             "properties": {
-                                                                "id": {
+                                                                "ingredient_id": {
                                                                     "type": "integer",
                                                                     "example": 1
                                                                 },
@@ -1439,6 +1473,15 @@
                                                                     "type": "number",
                                                                     "format": "float",
                                                                     "example": 1.2
+                                                                },
+                                                                "unit": {
+                                                                    "type": "string",
+                                                                    "example": "kg"
+                                                                },
+                                                                "quantity": {
+                                                                    "description": "Pivot quantity (recipe_items.quantity)",
+                                                                    "type": "integer",
+                                                                    "example": 2
                                                                 }
                                                             },
                                                             "type": "object"
@@ -1454,8 +1497,8 @@
                             }
                         }
                     },
-                    "404": {
-                        "description": "No recipes found."
+                    "422": {
+                        "description": "Validation error"
                     }
                 }
             },
@@ -1464,6 +1507,7 @@
                     "Recipes"
                 ],
                 "summary": "Create a new recipe (admin only)",
+                "description": "You can send either items[] (ingredient_id + quantity) OR ingredient_ids[] (quantity defaults to 1).",
                 "operationId": "46448289940e329a644b891be9c66943",
                 "requestBody": {
                     "required": true,
@@ -1471,33 +1515,80 @@
                         "application/json": {
                             "schema": {
                                 "required": [
-                                    "name",
-                                    "ingredient_ids"
+                                    "name"
                                 ],
-                                "properties": {
-                                    "name": {
-                                        "type": "string",
-                                        "maxLength": 255,
-                                        "example": "Greek Salad"
-                                    },
-                                    "description": {
-                                        "type": "string",
-                                        "example": "Fresh and easy."
-                                    },
-                                    "ingredient_ids": {
-                                        "type": "array",
-                                        "items": {
-                                            "type": "integer"
+                                "oneOf": [
+                                    {
+                                        "required": [
+                                            "name",
+                                            "items"
+                                        ],
+                                        "properties": {
+                                            "name": {
+                                                "type": "string",
+                                                "maxLength": 255,
+                                                "example": "Greek Salad"
+                                            },
+                                            "description": {
+                                                "type": "string",
+                                                "example": "Fresh and easy.",
+                                                "nullable": true
+                                            },
+                                            "items": {
+                                                "type": "array",
+                                                "items": {
+                                                    "required": [
+                                                        "ingredient_id",
+                                                        "quantity"
+                                                    ],
+                                                    "properties": {
+                                                        "ingredient_id": {
+                                                            "type": "integer",
+                                                            "example": 1
+                                                        },
+                                                        "quantity": {
+                                                            "type": "integer",
+                                                            "minimum": 1,
+                                                            "example": 2
+                                                        }
+                                                    },
+                                                    "type": "object"
+                                                }
+                                            }
                                         },
-                                        "example": [
-                                            1,
-                                            2,
-                                            3,
-                                            5
-                                        ]
+                                        "type": "object"
+                                    },
+                                    {
+                                        "required": [
+                                            "name",
+                                            "ingredient_ids"
+                                        ],
+                                        "properties": {
+                                            "name": {
+                                                "type": "string",
+                                                "maxLength": 255,
+                                                "example": "Simple Salad"
+                                            },
+                                            "description": {
+                                                "type": "string",
+                                                "example": "No quantities provided.",
+                                                "nullable": true
+                                            },
+                                            "ingredient_ids": {
+                                                "type": "array",
+                                                "items": {
+                                                    "type": "integer"
+                                                },
+                                                "example": [
+                                                    1,
+                                                    2,
+                                                    3
+                                                ]
+                                            }
+                                        },
+                                        "type": "object"
                                     }
-                                },
-                                "type": "object"
+                                ]
                             }
                         }
                     }
@@ -1514,32 +1605,6 @@
                                             "example": "Recipe created successfully"
                                         },
                                         "recipe": {
-                                            "properties": {
-                                                "id": {
-                                                    "type": "integer",
-                                                    "example": 12
-                                                },
-                                                "name": {
-                                                    "type": "string",
-                                                    "example": "Greek Salad"
-                                                },
-                                                "description": {
-                                                    "type": "string",
-                                                    "example": "Fresh and easy."
-                                                },
-                                                "ingredient_ids": {
-                                                    "type": "array",
-                                                    "items": {
-                                                        "type": "integer"
-                                                    },
-                                                    "example": [
-                                                        1,
-                                                        2,
-                                                        3,
-                                                        5
-                                                    ]
-                                                }
-                                            },
                                             "type": "object"
                                         }
                                     },
@@ -1553,6 +1618,9 @@
                     },
                     "422": {
                         "description": "Validation error"
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
                     }
                 },
                 "security": [
@@ -1567,16 +1635,17 @@
                 "tags": [
                     "Recipes"
                 ],
-                "summary": "Get the ingredients for a specific recipe",
+                "summary": "Get ingredients for a recipe (with quantity)",
                 "operationId": "52a68b3239e5581273eff80aeef5345d",
                 "parameters": [
                     {
                         "name": "recipe",
                         "in": "path",
-                        "description": "Recipe ID",
+                        "description": "Recipe ID (recipe_id)",
                         "required": true,
                         "schema": {
-                            "type": "integer"
+                            "type": "integer",
+                            "example": 7
                         }
                     }
                 ],
@@ -1589,13 +1658,13 @@
                                     "properties": {
                                         "recipe_id": {
                                             "type": "integer",
-                                            "example": 5
+                                            "example": 7
                                         },
                                         "ingredients": {
                                             "type": "array",
                                             "items": {
                                                 "properties": {
-                                                    "id": {
+                                                    "ingredient_id": {
                                                         "type": "integer",
                                                         "example": 1
                                                     },
@@ -1607,6 +1676,14 @@
                                                         "type": "number",
                                                         "format": "float",
                                                         "example": 1.2
+                                                    },
+                                                    "unit": {
+                                                        "type": "string",
+                                                        "example": "kg"
+                                                    },
+                                                    "quantity": {
+                                                        "type": "integer",
+                                                        "example": 2
                                                     }
                                                 },
                                                 "type": "object"
@@ -1619,7 +1696,7 @@
                         }
                     },
                     "404": {
-                        "description": "No ingredients found for this recipe."
+                        "description": "Recipe not found"
                     }
                 }
             }
@@ -1635,10 +1712,11 @@
                     {
                         "name": "recipe",
                         "in": "path",
-                        "description": "Recipe ID",
+                        "description": "Recipe ID (recipe_id)",
                         "required": true,
                         "schema": {
-                            "type": "integer"
+                            "type": "integer",
+                            "example": 7
                         }
                     }
                 ],
@@ -1651,7 +1729,7 @@
                                     "properties": {
                                         "recipe": {
                                             "properties": {
-                                                "id": {
+                                                "recipe_id": {
                                                     "type": "integer",
                                                     "example": 7
                                                 },
@@ -1663,17 +1741,34 @@
                                                     "type": "string",
                                                     "example": "Fresh and easy."
                                                 },
-                                                "ingredient_ids": {
+                                                "ingredients": {
                                                     "type": "array",
                                                     "items": {
-                                                        "type": "integer"
-                                                    },
-                                                    "example": [
-                                                        1,
-                                                        2,
-                                                        3,
-                                                        5
-                                                    ]
+                                                        "properties": {
+                                                            "ingredient_id": {
+                                                                "type": "integer",
+                                                                "example": 1
+                                                            },
+                                                            "name": {
+                                                                "type": "string",
+                                                                "example": "Tomato"
+                                                            },
+                                                            "price": {
+                                                                "type": "number",
+                                                                "format": "float",
+                                                                "example": 1.2
+                                                            },
+                                                            "unit": {
+                                                                "type": "string",
+                                                                "example": "kg"
+                                                            },
+                                                            "quantity": {
+                                                                "type": "integer",
+                                                                "example": 2
+                                                            }
+                                                        },
+                                                        "type": "object"
+                                                    }
                                                 }
                                             },
                                             "type": "object"
@@ -1694,15 +1789,17 @@
                     "Recipes"
                 ],
                 "summary": "Update a recipe (admin only)",
+                "description": "If items or ingredient_ids are provided, existing recipe_items are deleted and replaced with new ones.",
                 "operationId": "ede6813de2058df81e1ee589dfb30346",
                 "parameters": [
                     {
                         "name": "recipe",
                         "in": "path",
-                        "description": "Recipe ID",
+                        "description": "Recipe ID (recipe_id)",
                         "required": true,
                         "schema": {
-                            "type": "integer"
+                            "type": "integer",
+                            "example": 7
                         }
                     }
                 ],
@@ -1715,11 +1812,33 @@
                                     "name": {
                                         "type": "string",
                                         "maxLength": 255,
-                                        "example": "Summer Greek Salad"
+                                        "example": "Updated Salad"
                                     },
                                     "description": {
                                         "type": "string",
-                                        "example": "With extra basil."
+                                        "example": "Updated description.",
+                                        "nullable": true
+                                    },
+                                    "items": {
+                                        "type": "array",
+                                        "items": {
+                                            "required": [
+                                                "ingredient_id",
+                                                "quantity"
+                                            ],
+                                            "properties": {
+                                                "ingredient_id": {
+                                                    "type": "integer",
+                                                    "example": 1
+                                                },
+                                                "quantity": {
+                                                    "type": "integer",
+                                                    "minimum": 1,
+                                                    "example": 3
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
                                     },
                                     "ingredient_ids": {
                                         "type": "array",
@@ -1729,9 +1848,7 @@
                                         "example": [
                                             1,
                                             2,
-                                            3,
-                                            5,
-                                            16
+                                            3
                                         ]
                                     }
                                 },
@@ -1752,33 +1869,6 @@
                                             "example": "Recipe updated successfully"
                                         },
                                         "recipe": {
-                                            "properties": {
-                                                "id": {
-                                                    "type": "integer",
-                                                    "example": 7
-                                                },
-                                                "name": {
-                                                    "type": "string",
-                                                    "example": "Summer Greek Salad"
-                                                },
-                                                "description": {
-                                                    "type": "string",
-                                                    "example": "With extra basil."
-                                                },
-                                                "ingredient_ids": {
-                                                    "type": "array",
-                                                    "items": {
-                                                        "type": "integer"
-                                                    },
-                                                    "example": [
-                                                        1,
-                                                        2,
-                                                        3,
-                                                        5,
-                                                        16
-                                                    ]
-                                                }
-                                            },
                                             "type": "object"
                                         }
                                     },
@@ -1792,6 +1882,12 @@
                     },
                     "422": {
                         "description": "Validation error"
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
+                    },
+                    "404": {
+                        "description": "Recipe not found"
                     }
                 },
                 "security": [
@@ -1810,10 +1906,11 @@
                     {
                         "name": "recipe",
                         "in": "path",
-                        "description": "Recipe ID",
+                        "description": "Recipe ID (recipe_id)",
                         "required": true,
                         "schema": {
-                            "type": "integer"
+                            "type": "integer",
+                            "example": 7
                         }
                     }
                 ],
@@ -1833,6 +1930,12 @@
                     },
                     "403": {
                         "description": "Only admins can delete recipes"
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
+                    },
+                    "404": {
+                        "description": "Recipe not found"
                     }
                 },
                 "security": [
