@@ -15,13 +15,24 @@ class RecipeResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
-        $ingredients = Ingredient::whereIn('id', $this->ingredient_ids ?? [])->get();
-
         return [
-            'id' => $this->id,
+            'id' => $this->recipe_id,         
+            'recipe_id' => $this->recipe_id, 
             'name' => $this->name,
             'description' => $this->description,
-            'ingredients' => IngredientResource::collection($ingredients),
+            'ingredients_count' => $this->when(isset($this->ingredients_count), (int) $this->ingredients_count),
+            'ingredients' => $this->whenLoaded('ingredients', function () {
+                return $this->ingredients->map(function ($ing) {
+                    return [
+                        'id' => $ing->ingredient_id,
+                        'ingredient_id' => $ing->ingredient_id,
+                        'name' => $ing->name,
+                        'unit' => $ing->unit,
+                        'price' => (float) $ing->price,
+                        'quantity' => (int) ($ing->pivot->quantity ?? 1),
+                    ];
+                })->values();
+            }, []),
         ];
     }
 }
