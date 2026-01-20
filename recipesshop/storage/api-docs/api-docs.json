@@ -264,6 +264,941 @@
                 ]
             }
         },
+        "/api/cart": {
+            "get": {
+                "tags": [
+                    "Cart"
+                ],
+                "summary": "Get my cart",
+                "operationId": "3f2b3c383f97de1e0b47166eb353c8c9",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "required": [
+                                        "cart_id",
+                                        "user_id",
+                                        "total_amount_of_items",
+                                        "total_price",
+                                        "items"
+                                    ],
+                                    "properties": {
+                                        "cart_id": {
+                                            "type": "integer",
+                                            "example": 11
+                                        },
+                                        "user_id": {
+                                            "type": "integer",
+                                            "example": 11
+                                        },
+                                        "total_amount_of_items": {
+                                            "type": "integer",
+                                            "example": 2
+                                        },
+                                        "total_price": {
+                                            "type": "number",
+                                            "format": "float",
+                                            "example": 65
+                                        },
+                                        "items": {
+                                            "type": "array",
+                                            "items": {
+                                                "required": [
+                                                    "cart_item_id",
+                                                    "ingredient",
+                                                    "amount"
+                                                ],
+                                                "properties": {
+                                                    "cart_item_id": {
+                                                        "type": "integer",
+                                                        "example": 25
+                                                    },
+                                                    "ingredient": {
+                                                        "required": [
+                                                            "ingredient_id",
+                                                            "name",
+                                                            "unit",
+                                                            "price",
+                                                            "photo_path"
+                                                        ],
+                                                        "properties": {
+                                                            "ingredient_id": {
+                                                                "type": "integer",
+                                                                "example": 2
+                                                            },
+                                                            "name": {
+                                                                "type": "string",
+                                                                "example": "Beli luk"
+                                                            },
+                                                            "unit": {
+                                                                "type": "string",
+                                                                "example": "kom"
+                                                            },
+                                                            "price": {
+                                                                "type": "number",
+                                                                "format": "float",
+                                                                "example": 30
+                                                            },
+                                                            "photo_path": {
+                                                                "type": "string",
+                                                                "example": "/images/ingredients/beli_luk.jpg"
+                                                            }
+                                                        },
+                                                        "type": "object",
+                                                        "nullable": true
+                                                    },
+                                                    "amount": {
+                                                        "type": "integer",
+                                                        "example": 1
+                                                    }
+                                                },
+                                                "type": "object"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/cart/items": {
+            "post": {
+                "tags": [
+                    "Cart"
+                ],
+                "summary": "Add an ingredient to my cart or increase amount",
+                "operationId": "1013e22046b2b2c9c0fe91c46aa76499",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "ingredient_id",
+                                    "amount"
+                                ],
+                                "properties": {
+                                    "ingredient_id": {
+                                        "type": "integer",
+                                        "example": 2
+                                    },
+                                    "amount": {
+                                        "type": "integer",
+                                        "minimum": 1,
+                                        "example": 2
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Item added",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "required": [
+                                        "message",
+                                        "cart"
+                                    ],
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Item added to cart"
+                                        },
+                                        "cart": {
+                                            "required": [
+                                                "cart_id",
+                                                "user_id",
+                                                "total_amount_of_items",
+                                                "total_price",
+                                                "items"
+                                            ],
+                                            "properties": {
+                                                "cart_id": {
+                                                    "type": "integer",
+                                                    "example": 11
+                                                },
+                                                "user_id": {
+                                                    "type": "integer",
+                                                    "example": 11
+                                                },
+                                                "total_amount_of_items": {
+                                                    "type": "integer",
+                                                    "example": 3
+                                                },
+                                                "total_price": {
+                                                    "type": "number",
+                                                    "format": "float",
+                                                    "example": 95
+                                                },
+                                                "items": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "required": [
+                                                            "cart_item_id",
+                                                            "ingredient",
+                                                            "amount"
+                                                        ],
+                                                        "properties": {
+                                                            "cart_item_id": {
+                                                                "type": "integer",
+                                                                "example": 25
+                                                            },
+                                                            "ingredient": {
+                                                                "required": [
+                                                                    "ingredient_id",
+                                                                    "name",
+                                                                    "unit",
+                                                                    "price",
+                                                                    "photo_path"
+                                                                ],
+                                                                "properties": {
+                                                                    "ingredient_id": {
+                                                                        "type": "integer",
+                                                                        "example": 2
+                                                                    },
+                                                                    "name": {
+                                                                        "type": "string",
+                                                                        "example": "Beli luk"
+                                                                    },
+                                                                    "unit": {
+                                                                        "type": "string",
+                                                                        "example": "kom"
+                                                                    },
+                                                                    "price": {
+                                                                        "type": "number",
+                                                                        "format": "float",
+                                                                        "example": 30
+                                                                    },
+                                                                    "photo_path": {
+                                                                        "type": "string",
+                                                                        "example": "/images/ingredients/beli_luk.jpg"
+                                                                    }
+                                                                },
+                                                                "type": "object",
+                                                                "nullable": true
+                                                            },
+                                                            "amount": {
+                                                                "type": "integer",
+                                                                "example": 2
+                                                            }
+                                                        },
+                                                        "type": "object"
+                                                    }
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
+                    },
+                    "422": {
+                        "description": "Validation error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "The given data was invalid."
+                                        },
+                                        "errors": {
+                                            "type": "object",
+                                            "example": {
+                                                "ingredient_id": [
+                                                    "The ingredient id field is required."
+                                                ]
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/cart/from-recipes": {
+            "post": {
+                "tags": [
+                    "Cart"
+                ],
+                "summary": "Add ingredients from recipes to my cart -user only",
+                "operationId": "4e9e9244bb0c5f7f4d532bc4bdbda76c",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "recipe_ids"
+                                ],
+                                "properties": {
+                                    "recipe_ids": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "integer"
+                                        },
+                                        "minItems": 1,
+                                        "example": [
+                                            1,
+                                            3,
+                                            5
+                                        ]
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Recipe ingredients added",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "required": [
+                                        "message",
+                                        "cart"
+                                    ],
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Recipe ingredients added to cart"
+                                        },
+                                        "cart": {
+                                            "required": [
+                                                "cart_id",
+                                                "user_id",
+                                                "total_amount_of_items",
+                                                "total_price",
+                                                "items"
+                                            ],
+                                            "properties": {
+                                                "cart_id": {
+                                                    "type": "integer",
+                                                    "example": 11
+                                                },
+                                                "user_id": {
+                                                    "type": "integer",
+                                                    "example": 11
+                                                },
+                                                "total_amount_of_items": {
+                                                    "type": "integer",
+                                                    "example": 6
+                                                },
+                                                "total_price": {
+                                                    "type": "number",
+                                                    "format": "float",
+                                                    "example": 180
+                                                },
+                                                "items": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "required": [
+                                                            "cart_item_id",
+                                                            "ingredient",
+                                                            "amount"
+                                                        ],
+                                                        "properties": {
+                                                            "cart_item_id": {
+                                                                "type": "integer",
+                                                                "example": 25
+                                                            },
+                                                            "ingredient": {
+                                                                "required": [
+                                                                    "ingredient_id",
+                                                                    "name",
+                                                                    "unit",
+                                                                    "price",
+                                                                    "photo_path"
+                                                                ],
+                                                                "properties": {
+                                                                    "ingredient_id": {
+                                                                        "type": "integer",
+                                                                        "example": 2
+                                                                    },
+                                                                    "name": {
+                                                                        "type": "string",
+                                                                        "example": "Beli luk"
+                                                                    },
+                                                                    "unit": {
+                                                                        "type": "string",
+                                                                        "example": "kom"
+                                                                    },
+                                                                    "price": {
+                                                                        "type": "number",
+                                                                        "format": "float",
+                                                                        "example": 30
+                                                                    },
+                                                                    "photo_path": {
+                                                                        "type": "string",
+                                                                        "example": "/images/ingredients/beli_luk.jpg"
+                                                                    }
+                                                                },
+                                                                "type": "object",
+                                                                "nullable": true
+                                                            },
+                                                            "amount": {
+                                                                "type": "integer",
+                                                                "example": 3
+                                                            }
+                                                        },
+                                                        "type": "object"
+                                                    }
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
+                    },
+                    "403": {
+                        "description": "Only users can add recipe items to cart",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "error": {
+                                            "type": "string",
+                                            "example": "Only users can add recipe items to cart"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation error / Empty ingredient set from selected recipes",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "error": {
+                                            "type": "string",
+                                            "example": "Selected recipes resulted in an empty ingredient set"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/cart/items/{cartItem}": {
+            "put": {
+                "tags": [
+                    "Cart"
+                ],
+                "summary": "Update cart item amount- owner only",
+                "operationId": "4821dca79c7ed9c583c1598cb450fc5d",
+                "parameters": [
+                    {
+                        "name": "cartItem",
+                        "in": "path",
+                        "description": "Cart item ID",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 25
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "amount"
+                                ],
+                                "properties": {
+                                    "amount": {
+                                        "type": "integer",
+                                        "minimum": 1,
+                                        "example": 3
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Cart item updated",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "required": [
+                                        "message",
+                                        "cart"
+                                    ],
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Cart item updated"
+                                        },
+                                        "cart": {
+                                            "required": [
+                                                "cart_id",
+                                                "user_id",
+                                                "total_amount_of_items",
+                                                "total_price",
+                                                "items"
+                                            ],
+                                            "properties": {
+                                                "cart_id": {
+                                                    "type": "integer",
+                                                    "example": 11
+                                                },
+                                                "user_id": {
+                                                    "type": "integer",
+                                                    "example": 11
+                                                },
+                                                "total_amount_of_items": {
+                                                    "type": "integer",
+                                                    "example": 3
+                                                },
+                                                "total_price": {
+                                                    "type": "number",
+                                                    "format": "float",
+                                                    "example": 95
+                                                },
+                                                "items": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "required": [
+                                                            "cart_item_id",
+                                                            "ingredient",
+                                                            "amount"
+                                                        ],
+                                                        "properties": {
+                                                            "cart_item_id": {
+                                                                "type": "integer",
+                                                                "example": 25
+                                                            },
+                                                            "ingredient": {
+                                                                "required": [
+                                                                    "ingredient_id",
+                                                                    "name",
+                                                                    "unit",
+                                                                    "price",
+                                                                    "photo_path"
+                                                                ],
+                                                                "properties": {
+                                                                    "ingredient_id": {
+                                                                        "type": "integer",
+                                                                        "example": 2
+                                                                    },
+                                                                    "name": {
+                                                                        "type": "string",
+                                                                        "example": "Beli luk"
+                                                                    },
+                                                                    "unit": {
+                                                                        "type": "string",
+                                                                        "example": "kom"
+                                                                    },
+                                                                    "price": {
+                                                                        "type": "number",
+                                                                        "format": "float",
+                                                                        "example": 30
+                                                                    },
+                                                                    "photo_path": {
+                                                                        "type": "string",
+                                                                        "example": "/images/ingredients/beli_luk.jpg"
+                                                                    }
+                                                                },
+                                                                "type": "object",
+                                                                "nullable": true
+                                                            },
+                                                            "amount": {
+                                                                "type": "integer",
+                                                                "example": 3
+                                                            }
+                                                        },
+                                                        "type": "object"
+                                                    }
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "error": {
+                                            "type": "string",
+                                            "example": "Forbidden"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found"
+                    },
+                    "422": {
+                        "description": "Validation error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "The given data was invalid."
+                                        },
+                                        "errors": {
+                                            "type": "object",
+                                            "example": {
+                                                "amount": [
+                                                    "The amount field must be at least 1."
+                                                ]
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Cart"
+                ],
+                "summary": "Remove a cart item - owner only",
+                "operationId": "8d114a15678817e115627d0eace73231",
+                "parameters": [
+                    {
+                        "name": "cartItem",
+                        "in": "path",
+                        "description": "Cart item ID",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 25
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Cart item removed",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "required": [
+                                        "message",
+                                        "cart"
+                                    ],
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Cart item removed"
+                                        },
+                                        "cart": {
+                                            "required": [
+                                                "cart_id",
+                                                "user_id",
+                                                "total_amount_of_items",
+                                                "total_price",
+                                                "items"
+                                            ],
+                                            "properties": {
+                                                "cart_id": {
+                                                    "type": "integer",
+                                                    "example": 11
+                                                },
+                                                "user_id": {
+                                                    "type": "integer",
+                                                    "example": 11
+                                                },
+                                                "total_amount_of_items": {
+                                                    "type": "integer",
+                                                    "example": 2
+                                                },
+                                                "total_price": {
+                                                    "type": "number",
+                                                    "format": "float",
+                                                    "example": 65
+                                                },
+                                                "items": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "required": [
+                                                            "cart_item_id",
+                                                            "ingredient",
+                                                            "amount"
+                                                        ],
+                                                        "properties": {
+                                                            "cart_item_id": {
+                                                                "type": "integer",
+                                                                "example": 26
+                                                            },
+                                                            "ingredient": {
+                                                                "required": [
+                                                                    "ingredient_id",
+                                                                    "name",
+                                                                    "unit",
+                                                                    "price",
+                                                                    "photo_path"
+                                                                ],
+                                                                "properties": {
+                                                                    "ingredient_id": {
+                                                                        "type": "integer",
+                                                                        "example": 26
+                                                                    },
+                                                                    "name": {
+                                                                        "type": "string",
+                                                                        "example": "Biber"
+                                                                    },
+                                                                    "unit": {
+                                                                        "type": "string",
+                                                                        "example": "100g"
+                                                                    },
+                                                                    "price": {
+                                                                        "type": "number",
+                                                                        "format": "float",
+                                                                        "example": 35
+                                                                    },
+                                                                    "photo_path": {
+                                                                        "type": "string",
+                                                                        "example": "/images/ingredients/biber.jpg"
+                                                                    }
+                                                                },
+                                                                "type": "object",
+                                                                "nullable": true
+                                                            },
+                                                            "amount": {
+                                                                "type": "integer",
+                                                                "example": 1
+                                                            }
+                                                        },
+                                                        "type": "object"
+                                                    }
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "error": {
+                                            "type": "string",
+                                            "example": "Forbidden"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/cart/checkout": {
+            "post": {
+                "tags": [
+                    "Cart"
+                ],
+                "summary": "Checkout my cart and create an order",
+                "operationId": "2a8f571fdd64c0b6a759ea6738ebd9d3",
+                "responses": {
+                    "201": {
+                        "description": "Checkout successful",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "required": [
+                                        "message",
+                                        "order"
+                                    ],
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Checkout successful"
+                                        },
+                                        "order": {
+                                            "required": [
+                                                "order_id",
+                                                "status",
+                                                "total_price",
+                                                "items"
+                                            ],
+                                            "properties": {
+                                                "order_id": {
+                                                    "type": "integer",
+                                                    "example": 31
+                                                },
+                                                "status": {
+                                                    "type": "string",
+                                                    "example": "pending"
+                                                },
+                                                "total_price": {
+                                                    "type": "number",
+                                                    "format": "float",
+                                                    "example": 65
+                                                },
+                                                "items": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "required": [
+                                                            "ingredient_id",
+                                                            "amount",
+                                                            "total_price"
+                                                        ],
+                                                        "properties": {
+                                                            "ingredient_id": {
+                                                                "type": "integer",
+                                                                "example": 2
+                                                            },
+                                                            "amount": {
+                                                                "type": "integer",
+                                                                "example": 1
+                                                            },
+                                                            "total_price": {
+                                                                "type": "number",
+                                                                "format": "float",
+                                                                "example": 30
+                                                            }
+                                                        },
+                                                        "type": "object"
+                                                    }
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
+                    },
+                    "404": {
+                        "description": "Cart not found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "error": {
+                                            "type": "string",
+                                            "example": "Cart not found"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Cart is empty",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "error": {
+                                            "type": "string",
+                                            "example": "Cart is empty"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
         "/api/public/recipes": {
             "get": {
                 "tags": [
@@ -793,10 +1728,11 @@
                                 "schema": {
                                     "properties": {
                                         "orders": {
+                                            "description": "List of orders",
                                             "type": "array",
                                             "items": {
                                                 "properties": {
-                                                    "id": {
+                                                    "order_id": {
                                                         "type": "integer",
                                                         "example": 12
                                                     },
@@ -804,38 +1740,85 @@
                                                         "type": "string",
                                                         "example": "pending"
                                                     },
-                                                    "total_amount": {
+                                                    "total_price": {
                                                         "type": "number",
                                                         "format": "float",
-                                                        "example": 12.3
+                                                        "example": 65
                                                     },
-                                                    "ingredient_ids": {
-                                                        "type": "array",
-                                                        "items": {
-                                                            "type": "integer"
-                                                        },
-                                                        "example": [
-                                                            1,
-                                                            2,
-                                                            5
-                                                        ]
+                                                    "created_at": {
+                                                        "type": "string",
+                                                        "format": "date-time",
+                                                        "example": "2026-01-19T10:35:12Z",
+                                                        "nullable": true
+                                                    },
+                                                    "updated_at": {
+                                                        "type": "string",
+                                                        "format": "date-time",
+                                                        "example": "2026-01-19T10:36:40Z",
+                                                        "nullable": true
                                                     },
                                                     "user": {
                                                         "properties": {
-                                                            "id": {
+                                                            "user_id": {
                                                                 "type": "integer",
                                                                 "example": 3
                                                             },
-                                                            "name": {
-                                                                "type": "string",
-                                                                "example": "Jane Doe"
-                                                            },
                                                             "email": {
                                                                 "type": "string",
+                                                                "format": "email",
                                                                 "example": "jane@example.com"
+                                                            },
+                                                            "role": {
+                                                                "type": "string",
+                                                                "example": "user"
                                                             }
                                                         },
-                                                        "type": "object"
+                                                        "type": "object",
+                                                        "nullable": true
+                                                    },
+                                                    "items": {
+                                                        "type": "array",
+                                                        "items": {
+                                                            "properties": {
+                                                                "order_item_id": {
+                                                                    "type": "integer",
+                                                                    "example": 25
+                                                                },
+                                                                "ingredient": {
+                                                                    "properties": {
+                                                                        "ingredient_id": {
+                                                                            "type": "integer",
+                                                                            "example": 2
+                                                                        },
+                                                                        "name": {
+                                                                            "type": "string",
+                                                                            "example": "Beli luk"
+                                                                        },
+                                                                        "unit": {
+                                                                            "type": "string",
+                                                                            "example": "kom"
+                                                                        },
+                                                                        "price": {
+                                                                            "type": "number",
+                                                                            "format": "float",
+                                                                            "example": 30
+                                                                        }
+                                                                    },
+                                                                    "type": "object",
+                                                                    "nullable": true
+                                                                },
+                                                                "amount": {
+                                                                    "type": "integer",
+                                                                    "example": 1
+                                                                },
+                                                                "total_price": {
+                                                                    "type": "number",
+                                                                    "format": "float",
+                                                                    "example": 30
+                                                                }
+                                                            },
+                                                            "type": "object"
+                                                        }
                                                     }
                                                 },
                                                 "type": "object"
@@ -846,9 +1829,6 @@
                                 }
                             }
                         }
-                    },
-                    "404": {
-                        "description": "No orders found."
                     }
                 },
                 "security": [
@@ -861,30 +1841,65 @@
                 "tags": [
                     "Orders"
                 ],
-                "summary": "Create an order from ingredient IDs (user only)",
+                "summary": "Create an order (user only)",
+                "description": "Creates a new order for the authenticated user",
                 "operationId": "d690d6834318e9b064df441e854de8b9",
                 "requestBody": {
                     "required": true,
                     "content": {
                         "application/json": {
                             "schema": {
-                                "required": [
-                                    "ingredient_ids"
-                                ],
-                                "properties": {
-                                    "ingredient_ids": {
-                                        "type": "array",
-                                        "items": {
-                                            "type": "integer"
+                                "oneOf": [
+                                    {
+                                        "required": [
+                                            "items"
+                                        ],
+                                        "properties": {
+                                            "items": {
+                                                "type": "array",
+                                                "items": {
+                                                    "required": [
+                                                        "ingredient_id",
+                                                        "amount"
+                                                    ],
+                                                    "properties": {
+                                                        "ingredient_id": {
+                                                            "type": "integer",
+                                                            "example": 2
+                                                        },
+                                                        "amount": {
+                                                            "type": "integer",
+                                                            "minimum": 1,
+                                                            "example": 3
+                                                        }
+                                                    },
+                                                    "type": "object"
+                                                },
+                                                "minItems": 1
+                                            }
                                         },
-                                        "example": [
-                                            1,
-                                            2,
-                                            5
-                                        ]
+                                        "type": "object"
+                                    },
+                                    {
+                                        "required": [
+                                            "ingredient_ids"
+                                        ],
+                                        "properties": {
+                                            "ingredient_ids": {
+                                                "type": "array",
+                                                "items": {
+                                                    "type": "integer"
+                                                },
+                                                "minItems": 1,
+                                                "example": [
+                                                    2,
+                                                    26
+                                                ]
+                                            }
+                                        },
+                                        "type": "object"
                                     }
-                                },
-                                "type": "object"
+                                ]
                             }
                         }
                     }
@@ -895,14 +1910,27 @@
                         "content": {
                             "application/json": {
                                 "schema": {
+                                    "required": [
+                                        "message",
+                                        "order"
+                                    ],
                                     "properties": {
                                         "message": {
                                             "type": "string",
                                             "example": "Order created successfully"
                                         },
                                         "order": {
+                                            "required": [
+                                                "order_id",
+                                                "status",
+                                                "total_price",
+                                                "created_at",
+                                                "updated_at",
+                                                "user",
+                                                "items"
+                                            ],
                                             "properties": {
-                                                "id": {
+                                                "order_id": {
                                                     "type": "integer",
                                                     "example": 22
                                                 },
@@ -910,21 +1938,102 @@
                                                     "type": "string",
                                                     "example": "pending"
                                                 },
-                                                "total_amount": {
+                                                "total_price": {
                                                     "type": "number",
                                                     "format": "float",
-                                                    "example": 12.3
+                                                    "example": 65
                                                 },
-                                                "ingredient_ids": {
+                                                "created_at": {
+                                                    "type": "string",
+                                                    "format": "date-time",
+                                                    "example": "2026-01-19T21:52:03.379Z",
+                                                    "nullable": true
+                                                },
+                                                "updated_at": {
+                                                    "type": "string",
+                                                    "format": "date-time",
+                                                    "example": "2026-01-19T21:55:10.120Z",
+                                                    "nullable": true
+                                                },
+                                                "user": {
+                                                    "required": [
+                                                        "user_id",
+                                                        "email",
+                                                        "role"
+                                                    ],
+                                                    "properties": {
+                                                        "user_id": {
+                                                            "type": "integer",
+                                                            "example": 3
+                                                        },
+                                                        "email": {
+                                                            "type": "string",
+                                                            "format": "email",
+                                                            "example": "jane@example.com"
+                                                        },
+                                                        "role": {
+                                                            "type": "string",
+                                                            "example": "user"
+                                                        }
+                                                    },
+                                                    "type": "object",
+                                                    "nullable": true
+                                                },
+                                                "items": {
                                                     "type": "array",
                                                     "items": {
-                                                        "type": "integer"
-                                                    },
-                                                    "example": [
-                                                        1,
-                                                        2,
-                                                        5
-                                                    ]
+                                                        "required": [
+                                                            "order_item_id",
+                                                            "ingredient",
+                                                            "amount",
+                                                            "total_price"
+                                                        ],
+                                                        "properties": {
+                                                            "order_item_id": {
+                                                                "type": "integer",
+                                                                "example": 25
+                                                            },
+                                                            "ingredient": {
+                                                                "required": [
+                                                                    "ingredient_id",
+                                                                    "name",
+                                                                    "unit",
+                                                                    "price"
+                                                                ],
+                                                                "properties": {
+                                                                    "ingredient_id": {
+                                                                        "type": "integer",
+                                                                        "example": 2
+                                                                    },
+                                                                    "name": {
+                                                                        "type": "string",
+                                                                        "example": "Beli luk"
+                                                                    },
+                                                                    "unit": {
+                                                                        "type": "string",
+                                                                        "example": "kom"
+                                                                    },
+                                                                    "price": {
+                                                                        "type": "number",
+                                                                        "format": "float",
+                                                                        "example": 30
+                                                                    }
+                                                                },
+                                                                "type": "object",
+                                                                "nullable": true
+                                                            },
+                                                            "amount": {
+                                                                "type": "integer",
+                                                                "example": 1
+                                                            },
+                                                            "total_price": {
+                                                                "type": "number",
+                                                                "format": "float",
+                                                                "example": 30
+                                                            }
+                                                        },
+                                                        "type": "object"
+                                                    }
                                                 }
                                             },
                                             "type": "object"
@@ -935,11 +2044,40 @@
                             }
                         }
                     },
+                    "401": {
+                        "description": "Unauthenticated"
+                    },
                     "403": {
-                        "description": "Only users can create orders"
+                        "description": "Only users can create orders",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "error": {
+                                            "type": "string",
+                                            "example": "Only users can create orders"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
                     },
                     "422": {
-                        "description": "Validation error"
+                        "description": "Validation error / Empty cart",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "error": {
+                                            "type": "string",
+                                            "example": "Empty cart"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
                     }
                 },
                 "security": [
@@ -955,15 +2093,17 @@
                     "Orders"
                 ],
                 "summary": "Admin: list orders for a specific user",
+                "description": "Returns orders for the specified user",
                 "operationId": "67cd8a0a0abaef35b98e80822e09a850",
                 "parameters": [
                     {
                         "name": "user",
                         "in": "path",
-                        "description": "User ID",
+                        "description": "User ID (route-model binding)",
                         "required": true,
                         "schema": {
-                            "type": "integer"
+                            "type": "integer",
+                            "example": 3
                         }
                     }
                 ],
@@ -973,20 +2113,30 @@
                         "content": {
                             "application/json": {
                                 "schema": {
+                                    "required": [
+                                        "user",
+                                        "orders"
+                                    ],
                                     "properties": {
                                         "user": {
+                                            "required": [
+                                                "user_id",
+                                                "email",
+                                                "role"
+                                            ],
                                             "properties": {
-                                                "id": {
+                                                "user_id": {
                                                     "type": "integer",
                                                     "example": 3
                                                 },
-                                                "name": {
-                                                    "type": "string",
-                                                    "example": "Jane Doe"
-                                                },
                                                 "email": {
                                                     "type": "string",
+                                                    "format": "email",
                                                     "example": "jane@example.com"
+                                                },
+                                                "role": {
+                                                    "type": "string",
+                                                    "example": "user"
                                                 }
                                             },
                                             "type": "object"
@@ -994,8 +2144,17 @@
                                         "orders": {
                                             "type": "array",
                                             "items": {
+                                                "required": [
+                                                    "order_id",
+                                                    "status",
+                                                    "total_price",
+                                                    "created_at",
+                                                    "updated_at",
+                                                    "user",
+                                                    "items"
+                                                ],
                                                 "properties": {
-                                                    "id": {
+                                                    "order_id": {
                                                         "type": "integer",
                                                         "example": 15
                                                     },
@@ -1003,20 +2162,102 @@
                                                         "type": "string",
                                                         "example": "paid"
                                                     },
-                                                    "total_amount": {
+                                                    "total_price": {
                                                         "type": "number",
                                                         "format": "float",
-                                                        "example": 8.7
+                                                        "example": 65
                                                     },
-                                                    "ingredient_ids": {
+                                                    "created_at": {
+                                                        "type": "string",
+                                                        "format": "date-time",
+                                                        "example": "2026-01-19T21:52:03.379Z",
+                                                        "nullable": true
+                                                    },
+                                                    "updated_at": {
+                                                        "type": "string",
+                                                        "format": "date-time",
+                                                        "example": "2026-01-19T21:55:10.120Z",
+                                                        "nullable": true
+                                                    },
+                                                    "user": {
+                                                        "required": [
+                                                            "user_id",
+                                                            "email",
+                                                            "role"
+                                                        ],
+                                                        "properties": {
+                                                            "user_id": {
+                                                                "type": "integer",
+                                                                "example": 3
+                                                            },
+                                                            "email": {
+                                                                "type": "string",
+                                                                "format": "email",
+                                                                "example": "jane@example.com"
+                                                            },
+                                                            "role": {
+                                                                "type": "string",
+                                                                "example": "user"
+                                                            }
+                                                        },
+                                                        "type": "object",
+                                                        "nullable": true
+                                                    },
+                                                    "items": {
                                                         "type": "array",
                                                         "items": {
-                                                            "type": "integer"
-                                                        },
-                                                        "example": [
-                                                            10,
-                                                            14
-                                                        ]
+                                                            "required": [
+                                                                "order_item_id",
+                                                                "ingredient",
+                                                                "amount",
+                                                                "total_price"
+                                                            ],
+                                                            "properties": {
+                                                                "order_item_id": {
+                                                                    "type": "integer",
+                                                                    "example": 25
+                                                                },
+                                                                "ingredient": {
+                                                                    "required": [
+                                                                        "ingredient_id",
+                                                                        "name",
+                                                                        "unit",
+                                                                        "price"
+                                                                    ],
+                                                                    "properties": {
+                                                                        "ingredient_id": {
+                                                                            "type": "integer",
+                                                                            "example": 2
+                                                                        },
+                                                                        "name": {
+                                                                            "type": "string",
+                                                                            "example": "Beli luk"
+                                                                        },
+                                                                        "unit": {
+                                                                            "type": "string",
+                                                                            "example": "kom"
+                                                                        },
+                                                                        "price": {
+                                                                            "type": "number",
+                                                                            "format": "float",
+                                                                            "example": 30
+                                                                        }
+                                                                    },
+                                                                    "type": "object",
+                                                                    "nullable": true
+                                                                },
+                                                                "amount": {
+                                                                    "type": "integer",
+                                                                    "example": 1
+                                                                },
+                                                                "total_price": {
+                                                                    "type": "number",
+                                                                    "format": "float",
+                                                                    "example": 30
+                                                                }
+                                                            },
+                                                            "type": "object"
+                                                        }
                                                     }
                                                 },
                                                 "type": "object"
@@ -1028,110 +2269,18 @@
                             }
                         }
                     },
-                    "403": {
-                        "description": "Only admins can view user orders"
+                    "401": {
+                        "description": "Unauthenticated"
                     },
-                    "404": {
-                        "description": "No orders found for this user."
-                    }
-                },
-                "security": [
-                    {
-                        "bearerAuth": []
-                    }
-                ]
-            }
-        },
-        "/api/orders/from-recipes": {
-            "post": {
-                "tags": [
-                    "Orders"
-                ],
-                "summary": "Create an order from recipes, with include/exclude ingredients (user only)",
-                "operationId": "96e17b7b78996e61a039e528ae28dc2f",
-                "requestBody": {
-                    "required": true,
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "required": [
-                                    "recipe_ids"
-                                ],
-                                "properties": {
-                                    "recipe_ids": {
-                                        "type": "array",
-                                        "items": {
-                                            "type": "integer"
-                                        },
-                                        "example": [
-                                            1,
-                                            2
-                                        ]
-                                    },
-                                    "include_ingredient_ids": {
-                                        "type": "array",
-                                        "items": {
-                                            "type": "integer"
-                                        },
-                                        "example": [
-                                            19
-                                        ]
-                                    },
-                                    "exclude_ingredient_ids": {
-                                        "type": "array",
-                                        "items": {
-                                            "type": "integer"
-                                        },
-                                        "example": [
-                                            3
-                                        ]
-                                    }
-                                },
-                                "type": "object"
-                            }
-                        }
-                    }
-                },
-                "responses": {
-                    "201": {
-                        "description": "Order created from recipes",
+                    "403": {
+                        "description": "Only admins can view user orders",
                         "content": {
                             "application/json": {
                                 "schema": {
                                     "properties": {
-                                        "message": {
+                                        "error": {
                                             "type": "string",
-                                            "example": "Order created successfully from recipes"
-                                        },
-                                        "order": {
-                                            "properties": {
-                                                "id": {
-                                                    "type": "integer",
-                                                    "example": 23
-                                                },
-                                                "status": {
-                                                    "type": "string",
-                                                    "example": "pending"
-                                                },
-                                                "total_amount": {
-                                                    "type": "number",
-                                                    "format": "float",
-                                                    "example": 18.4
-                                                },
-                                                "ingredient_ids": {
-                                                    "type": "array",
-                                                    "items": {
-                                                        "type": "integer"
-                                                    },
-                                                    "example": [
-                                                        1,
-                                                        2,
-                                                        5,
-                                                        19
-                                                    ]
-                                                }
-                                            },
-                                            "type": "object"
+                                            "example": "Only admins can view user orders"
                                         }
                                     },
                                     "type": "object"
@@ -1139,11 +2288,8 @@
                             }
                         }
                     },
-                    "403": {
-                        "description": "Only users can create orders"
-                    },
-                    "422": {
-                        "description": "Selected recipes and modifiers resulted in an empty cart."
+                    "404": {
+                        "description": "No orders found for this user."
                     }
                 },
                 "security": [
@@ -1159,15 +2305,17 @@
                     "Orders"
                 ],
                 "summary": "Get a single order (admin:any, user:own only)",
+                "description": "Admins can view any order. Regular users can view only their own order.",
                 "operationId": "f090f23952a43521af6f1d133826bc37",
                 "parameters": [
                     {
                         "name": "order",
                         "in": "path",
-                        "description": "Order ID",
+                        "description": "Order ID (route-model binding)",
                         "required": true,
                         "schema": {
-                            "type": "integer"
+                            "type": "integer",
+                            "example": 22
                         }
                     }
                 ],
@@ -1177,10 +2325,22 @@
                         "content": {
                             "application/json": {
                                 "schema": {
+                                    "required": [
+                                        "order"
+                                    ],
                                     "properties": {
                                         "order": {
+                                            "required": [
+                                                "order_id",
+                                                "status",
+                                                "total_price",
+                                                "created_at",
+                                                "updated_at",
+                                                "user",
+                                                "items"
+                                            ],
                                             "properties": {
-                                                "id": {
+                                                "order_id": {
                                                     "type": "integer",
                                                     "example": 22
                                                 },
@@ -1188,21 +2348,102 @@
                                                     "type": "string",
                                                     "example": "pending"
                                                 },
-                                                "total_amount": {
+                                                "total_price": {
                                                     "type": "number",
                                                     "format": "float",
                                                     "example": 12.3
                                                 },
-                                                "ingredient_ids": {
+                                                "created_at": {
+                                                    "type": "string",
+                                                    "format": "date-time",
+                                                    "example": "2026-01-19T21:52:03.379Z",
+                                                    "nullable": true
+                                                },
+                                                "updated_at": {
+                                                    "type": "string",
+                                                    "format": "date-time",
+                                                    "example": "2026-01-19T21:55:10.120Z",
+                                                    "nullable": true
+                                                },
+                                                "user": {
+                                                    "required": [
+                                                        "user_id",
+                                                        "email",
+                                                        "role"
+                                                    ],
+                                                    "properties": {
+                                                        "user_id": {
+                                                            "type": "integer",
+                                                            "example": 3
+                                                        },
+                                                        "email": {
+                                                            "type": "string",
+                                                            "format": "email",
+                                                            "example": "jane@example.com"
+                                                        },
+                                                        "role": {
+                                                            "type": "string",
+                                                            "example": "user"
+                                                        }
+                                                    },
+                                                    "type": "object",
+                                                    "nullable": true
+                                                },
+                                                "items": {
                                                     "type": "array",
                                                     "items": {
-                                                        "type": "integer"
-                                                    },
-                                                    "example": [
-                                                        1,
-                                                        2,
-                                                        5
-                                                    ]
+                                                        "required": [
+                                                            "order_item_id",
+                                                            "ingredient",
+                                                            "amount",
+                                                            "total_price"
+                                                        ],
+                                                        "properties": {
+                                                            "order_item_id": {
+                                                                "type": "integer",
+                                                                "example": 25
+                                                            },
+                                                            "ingredient": {
+                                                                "required": [
+                                                                    "ingredient_id",
+                                                                    "name",
+                                                                    "unit",
+                                                                    "price"
+                                                                ],
+                                                                "properties": {
+                                                                    "ingredient_id": {
+                                                                        "type": "integer",
+                                                                        "example": 2
+                                                                    },
+                                                                    "name": {
+                                                                        "type": "string",
+                                                                        "example": "Beli luk"
+                                                                    },
+                                                                    "unit": {
+                                                                        "type": "string",
+                                                                        "example": "kom"
+                                                                    },
+                                                                    "price": {
+                                                                        "type": "number",
+                                                                        "format": "float",
+                                                                        "example": 30
+                                                                    }
+                                                                },
+                                                                "type": "object",
+                                                                "nullable": true
+                                                            },
+                                                            "amount": {
+                                                                "type": "integer",
+                                                                "example": 1
+                                                            },
+                                                            "total_price": {
+                                                                "type": "number",
+                                                                "format": "float",
+                                                                "example": 30
+                                                            }
+                                                        },
+                                                        "type": "object"
+                                                    }
                                                 }
                                             },
                                             "type": "object"
@@ -1213,8 +2454,27 @@
                             }
                         }
                     },
+                    "401": {
+                        "description": "Unauthenticated"
+                    },
                     "403": {
-                        "description": "Forbidden"
+                        "description": "Forbidden",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "error": {
+                                            "type": "string",
+                                            "example": "Forbidden"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found"
                     }
                 },
                 "security": [
@@ -1228,6 +2488,7 @@
                     "Orders"
                 ],
                 "summary": "Update an order (admin only)",
+                "description": "Updates an order status",
                 "operationId": "9f326acfc8febad161872da8dc13508f",
                 "parameters": [
                     {
@@ -1236,7 +2497,8 @@
                         "description": "Order ID",
                         "required": true,
                         "schema": {
-                            "type": "integer"
+                            "type": "integer",
+                            "example": 22
                         }
                     }
                 ],
@@ -1268,14 +2530,27 @@
                         "content": {
                             "application/json": {
                                 "schema": {
+                                    "required": [
+                                        "message",
+                                        "order"
+                                    ],
                                     "properties": {
                                         "message": {
                                             "type": "string",
                                             "example": "Order updated successfully"
                                         },
                                         "order": {
+                                            "required": [
+                                                "order_id",
+                                                "status",
+                                                "total_price",
+                                                "created_at",
+                                                "updated_at",
+                                                "user",
+                                                "items"
+                                            ],
                                             "properties": {
-                                                "id": {
+                                                "order_id": {
                                                     "type": "integer",
                                                     "example": 22
                                                 },
@@ -1283,21 +2558,102 @@
                                                     "type": "string",
                                                     "example": "paid"
                                                 },
-                                                "total_amount": {
+                                                "total_price": {
                                                     "type": "number",
                                                     "format": "float",
-                                                    "example": 12.3
+                                                    "example": 65
                                                 },
-                                                "ingredient_ids": {
+                                                "created_at": {
+                                                    "type": "string",
+                                                    "format": "date-time",
+                                                    "example": "2026-01-19T21:52:03.379Z",
+                                                    "nullable": true
+                                                },
+                                                "updated_at": {
+                                                    "type": "string",
+                                                    "format": "date-time",
+                                                    "example": "2026-01-19T21:55:10.120Z",
+                                                    "nullable": true
+                                                },
+                                                "user": {
+                                                    "required": [
+                                                        "user_id",
+                                                        "email",
+                                                        "role"
+                                                    ],
+                                                    "properties": {
+                                                        "user_id": {
+                                                            "type": "integer",
+                                                            "example": 3
+                                                        },
+                                                        "email": {
+                                                            "type": "string",
+                                                            "format": "email",
+                                                            "example": "jane@example.com"
+                                                        },
+                                                        "role": {
+                                                            "type": "string",
+                                                            "example": "user"
+                                                        }
+                                                    },
+                                                    "type": "object",
+                                                    "nullable": true
+                                                },
+                                                "items": {
                                                     "type": "array",
                                                     "items": {
-                                                        "type": "integer"
-                                                    },
-                                                    "example": [
-                                                        1,
-                                                        2,
-                                                        5
-                                                    ]
+                                                        "required": [
+                                                            "order_item_id",
+                                                            "ingredient",
+                                                            "amount",
+                                                            "total_price"
+                                                        ],
+                                                        "properties": {
+                                                            "order_item_id": {
+                                                                "type": "integer",
+                                                                "example": 25
+                                                            },
+                                                            "ingredient": {
+                                                                "required": [
+                                                                    "ingredient_id",
+                                                                    "name",
+                                                                    "unit",
+                                                                    "price"
+                                                                ],
+                                                                "properties": {
+                                                                    "ingredient_id": {
+                                                                        "type": "integer",
+                                                                        "example": 2
+                                                                    },
+                                                                    "name": {
+                                                                        "type": "string",
+                                                                        "example": "Beli luk"
+                                                                    },
+                                                                    "unit": {
+                                                                        "type": "string",
+                                                                        "example": "kom"
+                                                                    },
+                                                                    "price": {
+                                                                        "type": "number",
+                                                                        "format": "float",
+                                                                        "example": 30
+                                                                    }
+                                                                },
+                                                                "type": "object",
+                                                                "nullable": true
+                                                            },
+                                                            "amount": {
+                                                                "type": "integer",
+                                                                "example": 1
+                                                            },
+                                                            "total_price": {
+                                                                "type": "number",
+                                                                "format": "float",
+                                                                "example": 30
+                                                            }
+                                                        },
+                                                        "type": "object"
+                                                    }
                                                 }
                                             },
                                             "type": "object"
@@ -1308,11 +2664,27 @@
                             }
                         }
                     },
-                    "403": {
-                        "description": "Only admins can update orders"
+                    "401": {
+                        "description": "Unauthenticated"
                     },
-                    "422": {
-                        "description": "Validation error"
+                    "403": {
+                        "description": "Only admins can update orders",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "error": {
+                                            "type": "string",
+                                            "example": "Only admins can update orders"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found"
                     }
                 },
                 "security": [
@@ -1959,6 +3331,10 @@
         {
             "name": "Auth",
             "description": "Auth"
+        },
+        {
+            "name": "Cart",
+            "description": "Cart"
         },
         {
             "name": "External Recipes",

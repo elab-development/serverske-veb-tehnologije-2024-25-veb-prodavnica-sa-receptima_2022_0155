@@ -10,6 +10,8 @@ use App\Models\Recipe;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use App\Models\OrderItem;
+use Illuminate\Support\Facades\DB;
 
 class OrderController extends Controller
 {
@@ -24,73 +26,211 @@ class OrderController extends Controller
      *     description="OK",
      *     @OA\JsonContent(
      *       type="object",
-     *       @OA\Property(property="orders", type="array",
-     *         @OA\Items(type="object",
-     *           @OA\Property(property="id", type="integer", example=12),
+     *       @OA\Property(
+     *         property="orders",
+     *         type="array",
+     *         description="List of orders",
+     *         @OA\Items(
+     *           type="object",
+     *
+     *           @OA\Property(property="order_id", type="integer", example=12),
      *           @OA\Property(property="status", type="string", example="pending"),
-     *           @OA\Property(property="total_amount", type="number", format="float", example=12.30),
-     *           @OA\Property(property="ingredient_ids", type="array", @OA\Items(type="integer"), example={1,2,5}),
-     *           @OA\Property(property="user", type="object",
-     *             @OA\Property(property="id", type="integer", example=3),
-     *             @OA\Property(property="name", type="string", example="Jane Doe"),
-     *             @OA\Property(property="email", type="string", example="jane@example.com")
+     *           @OA\Property(property="total_price", type="number", format="float", example=65.0),
+     *
+     *           @OA\Property(property="created_at", type="string", format="date-time", nullable=true, example="2026-01-19T10:35:12Z"),
+     *           @OA\Property(property="updated_at", type="string", format="date-time", nullable=true, example="2026-01-19T10:36:40Z"),
+     *
+     *           @OA\Property(
+     *             property="user",
+     *             type="object",
+     *             nullable=true,
+     *             @OA\Property(property="user_id", type="integer", example=3),
+     *             @OA\Property(property="email", type="string", format="email", example="jane@example.com"),
+     *             @OA\Property(property="role", type="string", example="user")
+     *           ),
+     *
+     *           @OA\Property(
+     *             property="items",
+     *             type="array",
+     *             @OA\Items(
+     *               type="object",
+     *               @OA\Property(property="order_item_id", type="integer", example=25),
+     *
+     *               @OA\Property(
+     *                 property="ingredient",
+     *                 type="object",
+     *                 nullable=true,
+     *                 @OA\Property(property="ingredient_id", type="integer", example=2),
+     *                 @OA\Property(property="name", type="string", example="Beli luk"),
+     *                 @OA\Property(property="unit", type="string", example="kom"),
+     *                 @OA\Property(property="price", type="number", format="float", example=30.0)
+     *               ),
+     *
+     *               @OA\Property(property="amount", type="integer", example=1),
+     *               @OA\Property(property="total_price", type="number", format="float", example=30.0)
+     *             )
      *           )
      *         )
      *       )
      *     )
-     *   ),
-     *   @OA\Response(response=404, description="No orders found.")
+     *   )
      * )
      */
     public function index()
     {
-        if (Auth::user()->role === 'admin') {
-            $orders = Order::with('user')->latest()->get();
-        } else {
-            $orders = Order::with('user')->where('user_id', Auth::id())->latest()->get();
+        $q = Order::query()->with(['user', 'orderItems.ingredient']);
+
+        if (Auth::user()->role !== 'admin') {
+            $q->where('user_id', Auth::id());
         }
 
-        if ($orders->isEmpty()) {
-            return response()->json('No orders found.', 404);
-        }
-
+        $orders = $q->latest()->get();
         return response()->json([
-            'orders' => OrderResource::collection($orders),
+            'orders' => $orders->map(fn($o) => $this->presentOrder($o))->values(),
         ]);
     }
+    private function presentOrder(Order $order): array
+    {
+        return [
+            'order_id' => $order->order_id,
+            'status' => $order->status,
+            'total_price' => (float)$order->total_price,
 
-     /**
+            'created_at' => $order->created_at ? $order->created_at->toISOString() : null,
+            'updated_at' => $order->updated_at ? $order->updated_at->toISOString() : null,
+
+            'user' => $order->relationLoaded('user') && $order->user ? [
+                'user_id' => $order->user->user_id,
+                'email' => $order->user->email,
+                'role' => $order->user->role,
+            ] : null,
+
+            'items' => $order->orderItems->map(function ($it) {
+                return [
+                    'order_item_id' => $it->order_item_id,
+                    'ingredient' => $it->ingredient ? [
+                        'ingredient_id' => $it->ingredient->ingredient_id,
+                        'name' => $it->ingredient->name,
+                        'unit' => $it->ingredient->unit,
+                        'price' => (float)$it->ingredient->price,
+                    ] : null,
+                    'amount' => (int)$it->amount,
+                    'total_price' => (float)$it->total_price,
+                ];
+            })->values(),
+        ];
+    }
+
+    /**
      * @OA\Get(
      *   path="/api/users/{user}/orders",
      *   tags={"Orders"},
      *   summary="Admin: list orders for a specific user",
+     *   description="Returns orders for the specified user",
      *   security={{"bearerAuth":{}}},
+     *
      *   @OA\Parameter(
-     *     name="user", in="path", required=true, description="User ID",
-     *     @OA\Schema(type="integer")
+     *     name="user",
+     *     in="path",
+     *     required=true,
+     *     description="User ID (route-model binding)",
+     *     @OA\Schema(type="integer", example=3)
      *   ),
+     *
      *   @OA\Response(
      *     response=200,
      *     description="OK",
      *     @OA\JsonContent(
      *       type="object",
-     *       @OA\Property(property="user", type="object",
-     *         @OA\Property(property="id", type="integer", example=3),
-     *         @OA\Property(property="name", type="string", example="Jane Doe"),
-     *         @OA\Property(property="email", type="string", example="jane@example.com")
+     *       required={"user","orders"},
+     *       @OA\Property(
+     *         property="user",
+     *         type="object",
+     *         required={"user_id","email","role"},
+     *         @OA\Property(property="user_id", type="integer", example=3),
+     *         @OA\Property(property="email", type="string", format="email", example="jane@example.com"),
+     *         @OA\Property(property="role", type="string", example="user")
      *       ),
-     *       @OA\Property(property="orders", type="array",
-     *         @OA\Items(type="object",
-     *           @OA\Property(property="id", type="integer", example=15),
+     *       @OA\Property(
+     *         property="orders",
+     *         type="array",
+     *         @OA\Items(
+     *           type="object",
+     *           required={"order_id","status","total_price","created_at","updated_at","user","items"},
+     *
+     *           @OA\Property(property="order_id", type="integer", example=15),
      *           @OA\Property(property="status", type="string", example="paid"),
-     *           @OA\Property(property="total_amount", type="number", format="float", example=8.70),
-     *           @OA\Property(property="ingredient_ids", type="array", @OA\Items(type="integer"), example={10,14})
+     *           @OA\Property(property="total_price", type="number", format="float", example=65.00),
+     *
+     *           @OA\Property(
+     *             property="created_at",
+     *             type="string",
+     *             format="date-time",
+     *             nullable=true,
+     *             example="2026-01-19T21:52:03.379Z"
+     *           ),
+     *           @OA\Property(
+     *             property="updated_at",
+     *             type="string",
+     *             format="date-time",
+     *             nullable=true,
+     *             example="2026-01-19T21:55:10.120Z"
+     *           ),
+     *
+     *           @OA\Property(
+     *             property="user",
+     *             type="object",
+     *             nullable=true,
+     *             required={"user_id","email","role"},
+     *             @OA\Property(property="user_id", type="integer", example=3),
+     *             @OA\Property(property="email", type="string", format="email", example="jane@example.com"),
+     *             @OA\Property(property="role", type="string", example="user")
+     *           ),
+     *
+     *           @OA\Property(
+     *             property="items",
+     *             type="array",
+     *             @OA\Items(
+     *               type="object",
+     *               required={"order_item_id","ingredient","amount","total_price"},
+     *               @OA\Property(property="order_item_id", type="integer", example=25),
+     *
+     *               @OA\Property(
+     *                 property="ingredient",
+     *                 type="object",
+     *                 nullable=true,
+     *                 required={"ingredient_id","name","unit","price"},
+     *                 @OA\Property(property="ingredient_id", type="integer", example=2),
+     *                 @OA\Property(property="name", type="string", example="Beli luk"),
+     *                 @OA\Property(property="unit", type="string", example="kom"),
+     *                 @OA\Property(property="price", type="number", format="float", example=30.00)
+     *               ),
+     *
+     *               @OA\Property(property="amount", type="integer", example=1),
+     *               @OA\Property(property="total_price", type="number", format="float", example=30.00)
+     *             )
+     *           )
      *         )
      *       )
      *     )
      *   ),
-     *   @OA\Response(response=403, description="Only admins can view user orders"),
-     *   @OA\Response(response=404, description="No orders found for this user.")
+     *
+     *   @OA\Response(
+     *     response=401,
+     *     description="Unauthenticated"
+     *   ),
+     *   @OA\Response(
+     *     response=403,
+     *     description="Only admins can view user orders",
+     *     @OA\JsonContent(
+     *       type="object",
+     *       @OA\Property(property="error", type="string", example="Only admins can view user orders")
+     *     )
+     *   ),
+     *   @OA\Response(
+     *     response=404,
+     *     description="No orders found for this user."
+     *   )
      * )
      */
 
@@ -100,18 +240,19 @@ class OrderController extends Controller
             return response()->json(['error' => 'Only admins can view user orders'], 403);
         }
 
-        $orders = Order::with('user')
-            ->where('user_id', $user->id)
+        $orders = Order::query()
+            ->with(['user', 'orderItems.ingredient'])
+            ->where('user_id', $user->user_id)
             ->latest()
             ->get();
 
-        if ($orders->isEmpty()) {
-            return response()->json('No orders found for this user.', 404);
-        }
-
-        return response()->json([
-            'user'   => new UserResource($user),
-            'orders' => OrderResource::collection($orders),
+         return response()->json([
+            'user' => [
+                'user_id' => $user->user_id,
+                'email' => $user->email,
+                'role' => $user->role,
+            ],
+            'orders' => $orders->map(fn($o) => $this->presentOrder($o))->values(),
         ]);
     }
 
@@ -119,13 +260,38 @@ class OrderController extends Controller
      * @OA\Post(
      *   path="/api/orders",
      *   tags={"Orders"},
-     *   summary="Create an order from ingredient IDs (user only)",
+     *   summary="Create an order (user only)",
+     *   description="Creates a new order for the authenticated user",
      *   security={{"bearerAuth":{}}},
      *   @OA\RequestBody(
      *     required=true,
      *     @OA\JsonContent(
-     *       required={"ingredient_ids"},
-     *       @OA\Property(property="ingredient_ids", type="array", @OA\Items(type="integer"), example={1,2,5})
+     *       oneOf={
+     *         @OA\Schema(
+     *           required={"items"},
+     *           @OA\Property(
+     *             property="items",
+     *             type="array",
+     *             minItems=1,
+     *             @OA\Items(
+     *               type="object",
+     *               required={"ingredient_id","amount"},
+     *               @OA\Property(property="ingredient_id", type="integer", example=2),
+     *               @OA\Property(property="amount", type="integer", minimum=1, example=3)
+     *             )
+     *           )
+     *         ),
+     *         @OA\Schema(
+     *           required={"ingredient_ids"},
+     *           @OA\Property(
+     *             property="ingredient_ids",
+     *             type="array",
+     *             minItems=1,
+     *             @OA\Items(type="integer"),
+     *             example={2,26}
+     *           )
+     *         )
+     *       }
      *     )
      *   ),
      *   @OA\Response(
@@ -133,17 +299,89 @@ class OrderController extends Controller
      *     description="Order created",
      *     @OA\JsonContent(
      *       type="object",
+     *       required={"message","order"},
      *       @OA\Property(property="message", type="string", example="Order created successfully"),
-     *       @OA\Property(property="order", type="object",
-     *         @OA\Property(property="id", type="integer", example=22),
+     *       @OA\Property(
+     *         property="order",
+     *         type="object",
+     *         required={"order_id","status","total_price","created_at","updated_at","user","items"},
+     *
+     *         @OA\Property(property="order_id", type="integer", example=22),
      *         @OA\Property(property="status", type="string", example="pending"),
-     *         @OA\Property(property="total_amount", type="number", format="float", example=12.30),
-     *         @OA\Property(property="ingredient_ids", type="array", @OA\Items(type="integer"), example={1,2,5})
+     *         @OA\Property(property="total_price", type="number", format="float", example=65.00),
+     *
+     *         @OA\Property(
+     *           property="created_at",
+     *           type="string",
+     *           format="date-time",
+     *           nullable=true,
+     *           example="2026-01-19T21:52:03.379Z"
+     *         ),
+     *         @OA\Property(
+     *           property="updated_at",
+     *           type="string",
+     *           format="date-time",
+     *           nullable=true,
+     *           example="2026-01-19T21:55:10.120Z"
+     *         ),
+     *
+     *         @OA\Property(
+     *           property="user",
+     *           type="object",
+     *           nullable=true,
+     *           required={"user_id","email","role"},
+     *           @OA\Property(property="user_id", type="integer", example=3),
+     *           @OA\Property(property="email", type="string", format="email", example="jane@example.com"),
+     *           @OA\Property(property="role", type="string", example="user")
+     *         ),
+     *
+     *         @OA\Property(
+     *           property="items",
+     *           type="array",
+     *           @OA\Items(
+     *             type="object",
+     *             required={"order_item_id","ingredient","amount","total_price"},
+     *             @OA\Property(property="order_item_id", type="integer", example=25),
+     *             @OA\Property(
+     *               property="ingredient",
+     *               type="object",
+     *               nullable=true,
+     *               required={"ingredient_id","name","unit","price"},
+     *               @OA\Property(property="ingredient_id", type="integer", example=2),
+     *               @OA\Property(property="name", type="string", example="Beli luk"),
+     *               @OA\Property(property="unit", type="string", example="kom"),
+     *               @OA\Property(property="price", type="number", format="float", example=30.00)
+     *             ),
+     *             @OA\Property(property="amount", type="integer", example=1),
+     *             @OA\Property(property="total_price", type="number", format="float", example=30.00)
+     *           )
+     *         )
      *       )
      *     )
      *   ),
-     *   @OA\Response(response=403, description="Only users can create orders"),
-     *   @OA\Response(response=422, description="Validation error")
+     *
+     *   @OA\Response(
+     *     response=401,
+     *     description="Unauthenticated"
+     *   ),
+     *
+     *   @OA\Response(
+     *     response=403,
+     *     description="Only users can create orders",
+     *     @OA\JsonContent(
+     *       type="object",
+     *       @OA\Property(property="error", type="string", example="Only users can create orders")
+     *     )
+     *   ),
+     *
+     *   @OA\Response(
+     *     response=422,
+     *     description="Validation error / Empty cart",
+     *     @OA\JsonContent(
+     *       type="object",
+     *       @OA\Property(property="error", type="string", example="Empty cart")
+     *     )
+     *   )
      * )
      */
 
@@ -153,119 +391,74 @@ class OrderController extends Controller
             return response()->json(['error' => 'Only users can create orders'], 403);
         }
 
-        $validated = $request->validate([
-            'ingredient_ids' => ['required', 'array', 'min:1'],
-            'ingredient_ids.*' => ['integer', 'distinct', 'exists:ingredients,id'],
+        $request->validate([
+            'items' => 'sometimes|array|min:1',
+            'items.*.ingredient_id' => 'required_with:items|integer|distinct|exists:ingredients,ingredient_id',
+            'items.*.amount' => 'required_with:items|integer|min:1',
+            'ingredient_ids' => 'sometimes|array|min:1',
+            'ingredient_ids.*' => 'integer|distinct|exists:ingredients,ingredient_id',
         ]);
 
-        $ids = array_values(array_unique($validated['ingredient_ids']));
-        $total = (float) Ingredient::whereIn('id', $ids)->sum('price');
+        $items = $this->normalizeOrderItems($request);
 
-        $order = Order::create([
-            'user_id' => Auth::id(),
-            'ingredient_ids' => $ids,
-            'total_amount' => number_format($total, 2, '.', ''),
-            'status' => 'pending',
-        ]);
-
-        $order->load('user');
-
-        return response()->json([
-            'message' => 'Order created successfully',
-            'order'   => new OrderResource($order),
-        ], 201);
-    }
-
-    /**
-     * @OA\Post(
-     *   path="/api/orders/from-recipes",
-     *   tags={"Orders"},
-     *   summary="Create an order from recipes, with include/exclude ingredients (user only)",
-     *   security={{"bearerAuth":{}}},
-     *   @OA\RequestBody(
-     *     required=true,
-     *     @OA\JsonContent(
-     *       required={"recipe_ids"},
-     *       @OA\Property(property="recipe_ids", type="array", @OA\Items(type="integer"), example={1,2}),
-     *       @OA\Property(property="include_ingredient_ids", type="array", @OA\Items(type="integer"), example={19}),
-     *       @OA\Property(property="exclude_ingredient_ids", type="array", @OA\Items(type="integer"), example={3})
-     *     )
-     *   ),
-     *   @OA\Response(
-     *     response=201,
-     *     description="Order created from recipes",
-     *     @OA\JsonContent(
-     *       type="object",
-     *       @OA\Property(property="message", type="string", example="Order created successfully from recipes"),
-     *       @OA\Property(property="order", type="object",
-     *         @OA\Property(property="id", type="integer", example=23),
-     *         @OA\Property(property="status", type="string", example="pending"),
-     *         @OA\Property(property="total_amount", type="number", format="float", example=18.40),
-     *         @OA\Property(property="ingredient_ids", type="array", @OA\Items(type="integer"), example={1,2,5,19})
-     *       )
-     *     )
-     *   ),
-     *   @OA\Response(response=403, description="Only users can create orders"),
-     *   @OA\Response(response=422, description="Selected recipes and modifiers resulted in an empty cart.")
-     * )
-     */
-
-    public function storeFromRecipes(Request $request)
-    {
-        if (Auth::user()->role !== 'user') {
-            return response()->json(['error' => 'Only users can create orders'], 403);
+        if (empty($items)) {
+            return response()->json(['error' => 'Empty cart'], 422);
         }
 
-        $validated = $request->validate([
-            'recipe_ids' => ['required', 'array', 'min:1'],
-            'recipe_ids.*' => ['integer', 'distinct', 'exists:recipes,id'],
-            'include_ingredient_ids' => ['sometimes', 'array'],
-            'include_ingredient_ids.*' => ['integer', 'distinct', 'exists:ingredients,id'],
-            'exclude_ingredient_ids' => ['sometimes', 'array'],
-            'exclude_ingredient_ids.*' => ['integer', 'distinct', 'exists:ingredients,id'],
-        ]);
+        return DB::transaction(function () use ($items) {
+            $order = Order::create([
+                'user_id' => Auth::id(),
+                'status' => 'pending',
+                'total_price' => 0,
+            ]);
 
-        $recipes = Recipe::whereIn('id', $validated['recipe_ids'])->get(['ingredient_ids']);
-        $baseIds = [];
-        foreach ($recipes as $r) {
-            if (is_array($r->ingredient_ids)) {
-                $baseIds = array_merge($baseIds, $r->ingredient_ids);
+            $total = 0.0;
+
+            $ingredients = Ingredient::query()
+                ->whereIn('ingredient_id', array_column($items, 'ingredient_id'))
+                ->get()
+                ->keyBy('ingredient_id');
+
+            foreach ($items as $row) {
+                $ing = $ingredients[$row['ingredient_id']];
+                $line = (float)$ing->price * (int)$row['amount'];
+                $total += $line;
+
+                OrderItem::create([
+                    'order_id' => $order->order_id,
+                    'user_id' => Auth::id(),
+                    'ingredient_id' => $ing->ingredient_id,
+                    'amount' => (int)$row['amount'],
+                    'total_price' => number_format($line, 2, '.', ''),
+                ]);
             }
-        }
 
-        $include = $validated['include_ingredient_ids'] ?? [];
-        $exclude = $validated['exclude_ingredient_ids'] ?? [];
+            $order->update(['total_price' => number_format($total, 2, '.', '')]);
 
-        $baseIds = array_values(array_unique(array_map('intval', $baseIds)));
-        $include = array_values(array_unique(array_map('intval', $include)));
-        $exclude = array_values(array_unique(array_map('intval', $exclude)));
+            $order->load(['user', 'orderItems.ingredient']);
 
-        $finalIds = array_values(array_unique(array_merge($baseIds, $include)));
-        if (!empty($exclude)) {
-            $finalIds = array_values(array_diff($finalIds, $exclude));
-        }
-
-        if (empty($finalIds)) {
             return response()->json([
-                'error' => 'Selected recipes and modifiers resulted in an empty cart.'
-            ], 422);
+                'message' => 'Order created successfully',
+                'order' => $this->presentOrder($order),
+            ], 201);
+        });
+    }
+    private function normalizeOrderItems(Request $request): array
+    {
+        if ($request->has('items')) {
+            return collect($request->input('items', []))
+                ->map(fn($x) => [
+                    'ingredient_id' => (int)$x['ingredient_id'],
+                    'amount' => (int)$x['amount'],
+                ])
+                ->values()
+                ->all();
         }
 
-        $total = (float) Ingredient::whereIn('id', $finalIds)->sum('price');
+        $ids = $request->input('ingredient_ids', []);
+        $ids = array_values(array_unique(array_map('intval', $ids)));
 
-        $order = Order::create([
-            'user_id' => Auth::id(),
-            'ingredient_ids' => $finalIds,
-            'total_amount' => number_format($total, 2, '.', ''),
-            'status' => 'pending',
-        ]);
-
-        $order->load('user');
-
-        return response()->json([
-            'message' => 'Order created successfully from recipes',
-            'order' => new OrderResource($order),
-        ], 201);
+        return array_map(fn($id) => ['ingredient_id' => $id, 'amount' => 1], $ids);
     }
 
     /**
@@ -273,38 +466,113 @@ class OrderController extends Controller
      *   path="/api/orders/{order}",
      *   tags={"Orders"},
      *   summary="Get a single order (admin:any, user:own only)",
+     *   description="Admins can view any order. Regular users can view only their own order.",
      *   security={{"bearerAuth":{}}},
+     *
      *   @OA\Parameter(
-     *     name="order", in="path", required=true, description="Order ID",
-     *     @OA\Schema(type="integer")
+     *     name="order",
+     *     in="path",
+     *     required=true,
+     *     description="Order ID (route-model binding)",
+     *     @OA\Schema(type="integer", example=22)
      *   ),
+     *
      *   @OA\Response(
      *     response=200,
      *     description="OK",
      *     @OA\JsonContent(
      *       type="object",
-     *       @OA\Property(property="order", type="object",
-     *         @OA\Property(property="id", type="integer", example=22),
+     *       required={"order"},
+     *       @OA\Property(
+     *         property="order",
+     *         type="object",
+     *         required={"order_id","status","total_price","created_at","updated_at","user","items"},
+     *
+     *         @OA\Property(property="order_id", type="integer", example=22),
      *         @OA\Property(property="status", type="string", example="pending"),
-     *         @OA\Property(property="total_amount", type="number", format="float", example=12.30),
-     *         @OA\Property(property="ingredient_ids", type="array", @OA\Items(type="integer"), example={1,2,5})
+     *         @OA\Property(property="total_price", type="number", format="float", example=12.30),
+     *
+     *         @OA\Property(
+     *           property="created_at",
+     *           type="string",
+     *           format="date-time",
+     *           nullable=true,
+     *           example="2026-01-19T21:52:03.379Z"
+     *         ),
+     *         @OA\Property(
+     *           property="updated_at",
+     *           type="string",
+     *           format="date-time",
+     *           nullable=true,
+     *           example="2026-01-19T21:55:10.120Z"
+     *         ),
+     *
+     *         @OA\Property(
+     *           property="user",
+     *           type="object",
+     *           nullable=true,
+     *           required={"user_id","email","role"},
+     *           @OA\Property(property="user_id", type="integer", example=3),
+     *           @OA\Property(property="email", type="string", format="email", example="jane@example.com"),
+     *           @OA\Property(property="role", type="string", example="user")
+     *         ),
+     *
+     *         @OA\Property(
+     *           property="items",
+     *           type="array",
+     *           @OA\Items(
+     *             type="object",
+     *             required={"order_item_id","ingredient","amount","total_price"},
+     *             @OA\Property(property="order_item_id", type="integer", example=25),
+     *
+     *             @OA\Property(
+     *               property="ingredient",
+     *               type="object",
+     *               nullable=true,
+     *               required={"ingredient_id","name","unit","price"},
+     *               @OA\Property(property="ingredient_id", type="integer", example=2),
+     *               @OA\Property(property="name", type="string", example="Beli luk"),
+     *               @OA\Property(property="unit", type="string", example="kom"),
+     *               @OA\Property(property="price", type="number", format="float", example=30.00)
+     *             ),
+     *
+     *             @OA\Property(property="amount", type="integer", example=1),
+     *             @OA\Property(property="total_price", type="number", format="float", example=30.00)
+     *           )
+     *         )
      *       )
      *     )
      *   ),
-     *   @OA\Response(response=403, description="Forbidden")
+     *
+     *   @OA\Response(
+     *     response=401,
+     *     description="Unauthenticated"
+     *   ),
+     *   @OA\Response(
+     *     response=403,
+     *     description="Forbidden",
+     *     @OA\JsonContent(
+     *       type="object",
+     *       @OA\Property(property="error", type="string", example="Forbidden")
+     *     )
+     *   ),
+     *   @OA\Response(
+     *     response=404,
+     *     description="Not Found"
+     *   )
      * )
      */
 
     public function show(Order $order)
     {
-        if (Auth::user()->role !== 'admin' && $order->user_id !== Auth::id()) {
+        if (Auth::user()->role !== 'admin' && (int)$order->user_id !== (int)Auth::id()) {
             return response()->json(['error' => 'Forbidden'], 403);
         }
 
-        $order->load('user');
+        $order->load(['user', 'orderItems.ingredient']);
 
         return response()->json([
-            'order' => new OrderResource($order),
+            'order' => $this->presentOrder($order),
         ]);
     }
 
@@ -313,39 +581,118 @@ class OrderController extends Controller
      *   path="/api/orders/{order}",
      *   tags={"Orders"},
      *   summary="Update an order (admin only)",
+     *   description="Updates an order status",
      *   security={{"bearerAuth":{}}},
+     *
      *   @OA\Parameter(
-     *     name="order", in="path", required=true, description="Order ID",
-     *     @OA\Schema(type="integer")
+     *     name="order",
+     *     in="path",
+     *     required=true,
+     *     description="Order ID",
+     *     @OA\Schema(type="integer", example=22)
      *   ),
+     *
      *   @OA\RequestBody(
      *     required=false,
      *     @OA\JsonContent(
-     *       @OA\Property(property="status", type="string", enum={"pending","paid","fulfilled","cancelled"}, example="paid")
+     *       type="object",
+     *       @OA\Property(
+     *         property="status",
+     *         type="string",
+     *         enum={"pending","paid","fulfilled","cancelled"},
+     *         example="paid"
+     *       )
      *     )
      *   ),
+     *
      *   @OA\Response(
      *     response=200,
      *     description="Order updated",
      *     @OA\JsonContent(
      *       type="object",
+     *       required={"message","order"},
      *       @OA\Property(property="message", type="string", example="Order updated successfully"),
-     *       @OA\Property(property="order", type="object",
-     *         @OA\Property(property="id", type="integer", example=22),
+     *       @OA\Property(
+     *         property="order",
+     *         type="object",
+     *         required={"order_id","status","total_price","created_at","updated_at","user","items"},
+     *
+     *         @OA\Property(property="order_id", type="integer", example=22),
      *         @OA\Property(property="status", type="string", example="paid"),
-     *         @OA\Property(property="total_amount", type="number", format="float", example=12.30),
-     *         @OA\Property(property="ingredient_ids", type="array", @OA\Items(type="integer"), example={1,2,5})
+     *         @OA\Property(property="total_price", type="number", format="float", example=65.00),
+     *
+     *         @OA\Property(
+     *           property="created_at",
+     *           type="string",
+     *           format="date-time",
+     *           nullable=true,
+     *           example="2026-01-19T21:52:03.379Z"
+     *         ),
+     *         @OA\Property(
+     *           property="updated_at",
+     *           type="string",
+     *           format="date-time",
+     *           nullable=true,
+     *           example="2026-01-19T21:55:10.120Z"
+     *         ),
+     *
+     *         @OA\Property(
+     *           property="user",
+     *           type="object",
+     *           nullable=true,
+     *           required={"user_id","email","role"},
+     *           @OA\Property(property="user_id", type="integer", example=3),
+     *           @OA\Property(property="email", type="string", format="email", example="jane@example.com"),
+     *           @OA\Property(property="role", type="string", example="user")
+     *         ),
+     *
+     *         @OA\Property(
+     *           property="items",
+     *           type="array",
+     *           @OA\Items(
+     *             type="object",
+     *             required={"order_item_id","ingredient","amount","total_price"},
+     *             @OA\Property(property="order_item_id", type="integer", example=25),
+     *             @OA\Property(
+     *               property="ingredient",
+     *               type="object",
+     *               nullable=true,
+     *               required={"ingredient_id","name","unit","price"},
+     *               @OA\Property(property="ingredient_id", type="integer", example=2),
+     *               @OA\Property(property="name", type="string", example="Beli luk"),
+     *               @OA\Property(property="unit", type="string", example="kom"),
+     *               @OA\Property(property="price", type="number", format="float", example=30.00)
+     *             ),
+     *             @OA\Property(property="amount", type="integer", example=1),
+     *             @OA\Property(property="total_price", type="number", format="float", example=30.00)
+     *           )
+     *         )
      *       )
      *     )
      *   ),
-     *   @OA\Response(response=403, description="Only admins can update orders"),
-     *   @OA\Response(response=422, description="Validation error")
+     *
+     *   @OA\Response(
+     *     response=401,
+     *     description="Unauthenticated"
+     *   ),
+     *   @OA\Response(
+     *     response=403,
+     *     description="Only admins can update orders",
+     *     @OA\JsonContent(
+     *       type="object",
+     *       @OA\Property(property="error", type="string", example="Only admins can update orders")
+     *     )
+     *   ),
+     *   @OA\Response(
+     *     response=404,
+     *     description="Not Found"
+     *   )
      * )
      */
 
     public function update(Request $request, Order $order)
     {
-        if (Auth::user()->role !== 'admin') {
+         if (Auth::user()->role !== 'admin') {
             return response()->json(['error' => 'Only admins can update orders'], 403);
         }
 
@@ -354,11 +701,11 @@ class OrderController extends Controller
         ]);
 
         $order->update($validated);
-        $order->load('user');
+        $order->load(['user', 'orderItems.ingredient']);
 
         return response()->json([
             'message' => 'Order updated successfully',
-            'order' => new OrderResource($order),
+            'order' => $this->presentOrder($order),
         ]);
     }
 }
