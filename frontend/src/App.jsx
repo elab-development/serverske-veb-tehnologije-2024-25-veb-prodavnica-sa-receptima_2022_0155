@@ -5,6 +5,7 @@ import HomePage from "./pages/HomePage";
 import RegisterPage from "./pages/RegisterPage";
 import IngredientsPage from "./pages/IngredientsPage";
 import IngredientDetailsPage from "./pages/IngredientDetailsPage";
+import RecipesPage from "./pages/RecipesPage";
 import { useState } from 'react'
 import reactLogo from './assets/react.svg'
 import viteLogo from '/vite.svg'
@@ -20,6 +21,7 @@ function App() {
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/ingredients" element={<IngredientsPage />} />
         <Route path="/ingredients/:id/:slug" element={<IngredientDetailsPage />} />
+        <Route path="/recipes" element={<RecipesPage />} />
       </Routes>
     </BrowserRouter>
   )
