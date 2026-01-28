@@ -7,6 +7,7 @@ import IngredientsPage from "./pages/IngredientsPage";
 import IngredientDetailsPage from "./pages/IngredientDetailsPage";
 import RecipesPage from "./pages/RecipesPage";
 import RecipeDetailsPage from "./pages/RecipeDetailsPage"; 
+import CommunityRecipesPage from "./pages/CommunityRecipesPage";
 import { useState } from 'react'
 import reactLogo from './assets/react.svg'
 import viteLogo from '/vite.svg'
@@ -23,6 +24,7 @@ function App() {
         <Route path="/ingredients" element={<IngredientsPage />} />
         <Route path="/ingredients/:id/:slug" element={<IngredientDetailsPage />} />
         <Route path="/recipes" element={<RecipesPage />} />
+        <Route path="/community-recipes" element={<CommunityRecipesPage />} />
         <Route path="/recipes/:id/:slug" element={<RecipeDetailsPage />} />
         <Route
           path="/recipes/:recipeId/:recipeSlug/ingredients/:id/:ingredientSlug"
