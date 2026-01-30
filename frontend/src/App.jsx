@@ -2,6 +2,8 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import NavBar from "./components/NavBar";
 import LoginPage from "./pages/LoginPage";
 import HomePage from "./pages/HomePage";
+import CartPage from "./pages/CartPage";
+import PrivateRoute from "./components/PrivateRoute";
 import RegisterPage from "./pages/RegisterPage";
 import IngredientsPage from "./pages/IngredientsPage";
 import IngredientDetailsPage from "./pages/IngredientDetailsPage";
@@ -30,6 +32,10 @@ function App() {
           path="/recipes/:recipeId/:recipeSlug/ingredients/:id/:ingredientSlug"
           element={<IngredientDetailsPage />}
         />
+
+        <Route element={<PrivateRoute />}>
+          <Route path="/cart" element={<CartPage />} />
+        </Route>
       </Routes>
     </BrowserRouter>
   )

@@ -28,7 +28,34 @@ export default function RecipeDetails({
   const canAdd = allowAdd && !!recipeId && !detailsLoading;
 
   const onAddToCart = async () => {
-    alert("Klik na dugme 'Dodaj u korpu' treba napraviti cart");
+    if (!canAdd) return;
+
+    setAdding(true);
+    setAddError("");
+    setAddOk("");
+
+    try {
+      const res = await api.post("/cart/from-recipes", { recipe_ids: [recipeId] });
+
+      const totalItems = res.data?.cart?.total_amount_of_items;
+      setAddOk(
+        typeof totalItems === "number"
+          ? `Sastojci iz recepta su dodati u korpu. Ukupno stavki u korpi: ${totalItems}.`
+          : "Sastojci iz recepta su dodati u korpu."
+      );
+    } catch (err) {
+      const msg =
+        err?.response?.data?.message ||
+        err?.response?.data?.error ||
+        (typeof err?.response?.data === "string"
+          ? err.response.data
+          : JSON.stringify(err?.response?.data)) ||
+        err.message ||
+        "Greška pri dodavanju sastojaka u korpu.";
+      setAddError(msg);
+    } finally {
+      setAdding(false);
+    }
   };
 
   return (
