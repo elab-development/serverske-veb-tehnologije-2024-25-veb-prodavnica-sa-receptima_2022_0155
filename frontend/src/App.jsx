@@ -10,6 +10,7 @@ import IngredientDetailsPage from "./pages/IngredientDetailsPage";
 import RecipesPage from "./pages/RecipesPage";
 import RecipeDetailsPage from "./pages/RecipeDetailsPage"; 
 import CommunityRecipesPage from "./pages/CommunityRecipesPage";
+import OrdersPage from "./pages/OrdersPage";
 import { useState } from 'react'
 import reactLogo from './assets/react.svg'
 import viteLogo from '/vite.svg'
@@ -35,6 +36,7 @@ function App() {
 
         <Route element={<PrivateRoute />}>
           <Route path="/cart" element={<CartPage />} />
+          <Route path="/orders" element={<OrdersPage />} />
         </Route>
       </Routes>
     </BrowserRouter>
