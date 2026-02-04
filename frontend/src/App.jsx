@@ -14,6 +14,9 @@ import OrdersPage from "./pages/OrdersPage";
 import { useState } from 'react'
 import reactLogo from './assets/react.svg'
 import viteLogo from '/vite.svg'
+import AdminRoute from "./components/AdminRoute";
+import AdminDashboardPage from "./pages/admin/AdminDashboardPage";
+import AdminIngredientsPage from "./pages/admin/AdminIngredientsPage";
 
 function App() {
 
@@ -33,7 +36,10 @@ function App() {
           path="/recipes/:recipeId/:recipeSlug/ingredients/:id/:ingredientSlug"
           element={<IngredientDetailsPage />}
         />
-
+        <Route element={<AdminRoute />}>
+          <Route path="/admin" element={<AdminDashboardPage />} />
+          <Route path="/admin/ingredients" element={<AdminIngredientsPage />} />
+        </Route>
         <Route element={<PrivateRoute />}>
           <Route path="/cart" element={<CartPage />} />
           <Route path="/orders" element={<OrdersPage />} />

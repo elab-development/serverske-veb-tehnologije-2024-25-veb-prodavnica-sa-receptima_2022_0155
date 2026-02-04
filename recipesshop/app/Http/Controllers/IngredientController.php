@@ -88,6 +88,9 @@ class IngredientController extends Controller
             'name' => 'required|string|max:255|unique:ingredients,name',
             'price' => 'required|numeric|min:0',
             'unit' => 'required|string|max:50',
+            'category' => 'nullable|string|max:255',
+            'type' => 'nullable|string|max:255',
+            'description' => 'nullable|string',
         ]);
 
         $ingredient = Ingredient::create($validated);
@@ -183,11 +186,14 @@ class IngredientController extends Controller
         }
 
         $validated = $request->validate([
-            'name' => 'sometimes|string|max:255|unique:ingredients,name,' . $ingredient->id. ',ingredient_id',
+            'name' => 'sometimes|string|max:255|unique:ingredients,name,' . $ingredient->ingredient_id . ',ingredient_id',
             'price' => 'sometimes|numeric|min:0',
             'unit' => 'sometimes|string|max:50',
+            'category' => 'sometimes|nullable|string|max:255',
+            'type' => 'sometimes|nullable|string|max:255',
+            'description' => 'sometimes|nullable|string',
         ]);
-
+        
         $ingredient->update($validated);
 
         return response()->json([
