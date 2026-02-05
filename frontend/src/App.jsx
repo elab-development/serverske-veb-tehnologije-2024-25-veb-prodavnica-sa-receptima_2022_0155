@@ -17,6 +17,7 @@ import viteLogo from '/vite.svg'
 import AdminRoute from "./components/AdminRoute";
 import AdminDashboardPage from "./pages/admin/AdminDashboardPage";
 import AdminIngredientsPage from "./pages/admin/AdminIngredientsPage";
+import AdminRecipesPage from "./pages/admin/AdminRecipesPage";
 
 function App() {
 
@@ -39,6 +40,7 @@ function App() {
         <Route element={<AdminRoute />}>
           <Route path="/admin" element={<AdminDashboardPage />} />
           <Route path="/admin/ingredients" element={<AdminIngredientsPage />} />
+          <Route path="/admin/recipes" element={<AdminRecipesPage />} />
         </Route>
         <Route element={<PrivateRoute />}>
           <Route path="/cart" element={<CartPage />} />
