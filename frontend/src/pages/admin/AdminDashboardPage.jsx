@@ -12,6 +12,9 @@ export default function AdminDashboardPage() {
         <Link className="admin-card" to="/admin/recipes">
           Upravljanje receptima
         </Link>
+        <Link className="admin-card" to="/admin/orders">
+          Upravljanje porudžbinama
+        </Link>
       </div>
     </div>
   );

@@ -558,7 +558,7 @@ class CartController extends Controller
      *         type="object",
      *         required={"order_id","status","total_price","items"},
      *         @OA\Property(property="order_id", type="integer", example=31),
-     *         @OA\Property(property="status", type="string", example="pending"),
+     *         @OA\Property(property="status", type="string", example="plaćeno"),
      *         @OA\Property(property="total_price", type="number", format="float", example=65.00),
      *         @OA\Property(
      *           property="items",
@@ -612,7 +612,7 @@ class CartController extends Controller
         return DB::transaction(function () use ($cart) {
             $order = Order::create([
                 'user_id' => Auth::id(),
-                'status' => 'pending',
+                'status' => 'plaćeno',
                 'total_price' => 0,
             ]);
 
