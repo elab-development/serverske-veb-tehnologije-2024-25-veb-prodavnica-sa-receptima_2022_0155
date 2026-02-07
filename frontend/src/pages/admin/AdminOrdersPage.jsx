@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import api from "../../services/api";
 import "../../styles/admin-orders.css";
 import { Chart } from "react-google-charts";
+import React from "react";
 
 const STATUS_OPTIONS = ["plaćeno", "isporučeno", "otkazano"];
 
@@ -11,7 +12,8 @@ export default function AdminOrdersPage() {
   const [error, setError] = useState("");
 
   const [openId, setOpenId] = useState(null);
-  const [draftStatus, setDraftStatus] = useState({}); 
+  const [draftStatus, setDraftStatus] = useState({});
+  const [emailFilter, setEmailFilter] = useState("");
 
   const load = async () => {
     setLoading(true);
@@ -29,26 +31,32 @@ export default function AdminOrdersPage() {
 
   useEffect(() => { load(); }, []);
 
+  useEffect(() => { setOpenId(null); }, [emailFilter]);
+
   const normalized = useMemo(() => {
     return rows.map((o) => ({
       ...o,
       _id: o.order_id ?? o.id,
-      user_email: o?.user?.email ?? "-",
+      user_email: (o?.user?.email ?? "").toLowerCase(),
       items: Array.isArray(o.items) ? o.items : [],
     }));
   }, [rows]);
 
+  const filteredOrders = useMemo(() => {
+    const q = emailFilter.trim().toLowerCase();
+    if (!q) return normalized;
+
+    return normalized.filter((o) => (o.user_email || "").includes(q));
+  }, [normalized, emailFilter]);
+
   const statusChartData = useMemo(() => {
     const counts = new Map();
-    for (const o of normalized) {
-        const s = o.status;
-        counts.set(s, (counts.get(s) || 0) + 1);
+    for (const o of filteredOrders) {
+      const s = o.status;
+      counts.set(s, (counts.get(s) || 0) + 1);
     }
-    return [
-        ["Status", "Broj porudžbina"],
-        ...Array.from(counts.entries()),
-    ];
-  }, [normalized]);
+    return [["Status", "Broj porudžbina"], ...Array.from(counts.entries())];
+  }, [filteredOrders]);
 
   const toggle = (id) => {
     setOpenId((prev) => (prev === id ? null : id));
@@ -69,11 +77,12 @@ export default function AdminOrdersPage() {
 
     setError("");
     try {
-      await api.put(`/orders/${id}`, { status }); 
+      await api.put(`/orders/${id}`, { status });
       alert(`Status porudžbine #${id} je uspešno ažuriran na: ${status}`);
       await load();
     } catch (e) {
-      setError(e?.response?.data?.error || e?.response?.data?.message || e.message || "Greška pri čuvanju statusa.");
+      setError(e?.response?.data?.error || e?.response?.data?.message || e.message || "Greška pri čuvanju statusa."
+      );
     }
   };
 
@@ -81,10 +90,33 @@ export default function AdminOrdersPage() {
     <div className="admOrd-page">
       <div className="admOrd-header">
         <h1>Upravljanje porudžbinama</h1>
-        <button className="btn--secondary" onClick={load}>Osveži</button>
+
+        <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
+          <input
+            className="admOrd-input"
+            type="email"
+            placeholder="Filtriraj po email-u"
+            value={emailFilter}
+            onChange={(e) => setEmailFilter(e.target.value)}
+            style={{ minWidth: 320 }}
+          />
+
+          <button
+            className="btn--secondary"
+            type="button"
+            onClick={() => setEmailFilter("")}
+          >
+            Očisti
+          </button>
+
+          <button className="btn--secondary" type="button" onClick={load}>
+            Osveži
+          </button>
+        </div>
       </div>
 
       {error && <div className="alert alert-error">{error}</div>}
+
       {loading ? (
         <div className="alert alert-info">Učitavanje...</div>
       ) : (
@@ -120,22 +152,24 @@ export default function AdminOrdersPage() {
               </thead>
 
               <tbody>
-                {normalized.map((o) => {
+                {filteredOrders.map((o) => {
                   const isOpen = openId === o._id;
                   const statusVal = getStatusValue(o);
 
                   return (
-                    <>
-                      <tr key={o._id}>
+                    <React.Fragment key={o._id}>
+                      <tr>
                         <td>{o._id}</td>
-                        <td>{o.user_email}</td>
+                        <td>{o.user_email || "-"}</td>
                         <td>{Number(o.total_price ?? 0).toFixed(2)} RSD</td>
 
                         <td>
                           <select
                             className="admOrd-select"
                             value={statusVal}
-                            onChange={(e) => setStatusValue(o._id, e.target.value)}
+                            onChange={(e) =>
+                              setStatusValue(o._id, e.target.value)
+                            }
                           >
                             {STATUS_OPTIONS.map((s) => (
                               <option key={s} value={s}>
@@ -146,15 +180,25 @@ export default function AdminOrdersPage() {
                         </td>
 
                         <td className="admOrd-mono">
-                          {o.created_at ? new Date(o.created_at).toLocaleDateString() : "-"}
+                          {o.created_at
+                            ? new Date(o.created_at).toLocaleDateString()
+                            : "-"}
                         </td>
 
                         <td className="admOrd-rowActions">
-                          <button className="btn--primary" onClick={() => toggle(o._id)}>
+                          <button
+                            className="btn--primary"
+                            type="button"
+                            onClick={() => toggle(o._id)}
+                          >
                             {isOpen ? "Sakrij" : "Detalji"}
                           </button>
 
-                          <button className="btn--primary" onClick={() => saveStatus(o)}>
+                          <button
+                            className="btn--primary"
+                            type="button"
+                            onClick={() => saveStatus(o)}
+                          >
                             Sačuvaj
                           </button>
                         </td>
@@ -191,7 +235,9 @@ export default function AdminOrdersPage() {
                                         <tr
                                           key={
                                             it.order_item_id ??
-                                            `${o._id}-${it.ingredient?.ingredient_id ?? "x"}`
+                                            `${o._id}-${
+                                              it.ingredient?.ingredient_id ?? "x"
+                                            }`
                                           }
                                         >
                                           <td>
@@ -202,8 +248,14 @@ export default function AdminOrdersPage() {
                                             </span>
                                           </td>
                                           <td>{it.amount}</td>
-                                          <td>{Number(it?.ingredient?.price ?? 0).toFixed(2)} RSD</td>
-                                          <td>{Number(it.total_price ?? 0).toFixed(2)} RSD</td>
+                                          <td>
+                                            {Number(it?.ingredient?.price ?? 0).toFixed(2)}{" "}
+                                            RSD
+                                          </td>
+                                          <td>
+                                            {Number(it.total_price ?? 0).toFixed(2)}{" "}
+                                            RSD
+                                          </td>
                                         </tr>
                                       ))}
                                     </tbody>
@@ -214,14 +266,16 @@ export default function AdminOrdersPage() {
                           </td>
                         </tr>
                       )}
-                    </>
+                    </React.Fragment>
                   );
                 })}
 
-                {!normalized.length && (
+                {!filteredOrders.length && (
                   <tr>
                     <td colSpan={6} style={{ padding: 14 }}>
-                      Nema porudžbina.
+                      {emailFilter.trim()
+                        ? "Nema porudžbina za uneti email."
+                        : "Nema porudžbina."}
                     </td>
                   </tr>
                 )}
