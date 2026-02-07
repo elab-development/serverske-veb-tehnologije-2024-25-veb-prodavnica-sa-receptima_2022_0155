@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\CartController;
+use App\Http\Controllers\StatsController;
 
 /*
 |--------------------------------------------------------------------------
@@ -35,7 +36,7 @@ Route::get('/recipes/{recipe}/ingredients', [RecipeController::class, 'ingredien
 Route::get('/recipes/{recipe}', [RecipeController::class, 'show']);
 
 Route::get('/public/recipes', [ExternalRecipeController::class, 'search']);
-
+Route::get('/stats/orders-by-month', [StatsController::class, 'ordersByMonth']);
 Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('/cart', [CartController::class, 'showMyCart']);
     Route::post('/cart/items', [CartController::class, 'addItem']);

@@ -35,3 +35,11 @@
   box-shadow: 0 10px 24px rgba(0,0,0,0.06);
   transform: translateY(-1px);
 }
+.admin-chart {
+  margin-top: 24px;
+  background: #fff;
+  border: 1px solid #e6e8eb;
+  border-radius: 14px;
+  padding: 18px 16px;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.04);
+}

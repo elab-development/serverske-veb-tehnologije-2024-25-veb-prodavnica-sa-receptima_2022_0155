@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import "../../styles/admin.css";
+import OrdersByMonthChart from "../../components/OrdersByMonthChart";
 
 export default function AdminDashboardPage() {
   return (
@@ -16,6 +17,9 @@ export default function AdminDashboardPage() {
           Upravljanje porudžbinama
         </Link>
       </div>
+        <div className="admin-chart">
+          <OrdersByMonthChart />
+        </div>
     </div>
   );
 }
