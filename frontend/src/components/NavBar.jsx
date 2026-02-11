@@ -58,15 +58,25 @@ function NavBar() {
         <div className="navbar__group">
           {isAuth ? (
             <>
-              <NavLink className={linkClass} to="/cart">
-                Korpa
-              </NavLink>
+              {role === "user" && (
+                <>
+                  <NavLink className={linkClass} to="/cart">
+                  Korpa
+                  </NavLink>
 
-              <NavLink className={linkClass} to="/orders">
-                Porudžbine
-              </NavLink>
+                  <NavLink className={linkClass} to="/orders">
+                  Porudžbine
+                  </NavLink>
+                </>
+              )}
 
-              {role === "admin" && <span className="navbar__pill">Admin</span>}
+              {role === "admin" && (
+                <>
+                  <NavLink className={linkClass} to="/admin">
+                  Admin dashboard
+                  </NavLink>
+                </>
+              )}
 
               <button
                 className="navbar__button navbar__button--danger"

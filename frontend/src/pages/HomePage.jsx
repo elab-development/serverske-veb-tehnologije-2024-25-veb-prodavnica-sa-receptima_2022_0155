@@ -4,7 +4,13 @@ import "../styles/home.css";
 function HomePage() {
   return (
     <div className="home">
-  
+      <div className="bg-layer" aria-hidden="true">
+        <video className="bg-layer__video" autoPlay muted loop playsInline>
+          <source src="/videos/food%20video.mp4" type="video/mp4" />
+        </video>
+      </div>
+     <div className="home__content">
+      
       <header className="home__hero">
         <h1 className="home__title">Planiraj obroke. Izaberi recepte. Poruči sastojke.</h1>
         <p className="home__subtitle">
@@ -113,6 +119,7 @@ function HomePage() {
           </p>
         </div>
       </footer>
+      </div>
     </div>
   );
 }

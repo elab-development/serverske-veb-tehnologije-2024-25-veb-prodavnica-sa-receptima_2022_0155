@@ -34,7 +34,7 @@ class OrderController extends Controller
      *           type="object",
      *
      *           @OA\Property(property="order_id", type="integer", example=12),
-     *           @OA\Property(property="status", type="string", example="pending"),
+     *           @OA\Property(property="status", type="string", example="otkazano"),
      *           @OA\Property(property="total_price", type="number", format="float", example=65.0),
      *
      *           @OA\Property(property="created_at", type="string", format="date-time", nullable=true, example="2026-01-19T10:35:12Z"),
@@ -159,7 +159,7 @@ class OrderController extends Controller
      *           required={"order_id","status","total_price","created_at","updated_at","user","items"},
      *
      *           @OA\Property(property="order_id", type="integer", example=15),
-     *           @OA\Property(property="status", type="string", example="paid"),
+     *           @OA\Property(property="status", type="string", example="otkazano"),
      *           @OA\Property(property="total_price", type="number", format="float", example=65.00),
      *
      *           @OA\Property(
@@ -307,7 +307,7 @@ class OrderController extends Controller
      *         required={"order_id","status","total_price","created_at","updated_at","user","items"},
      *
      *         @OA\Property(property="order_id", type="integer", example=22),
-     *         @OA\Property(property="status", type="string", example="pending"),
+     *         @OA\Property(property="status", type="string", example="plaćeno"),
      *         @OA\Property(property="total_price", type="number", format="float", example=65.00),
      *
      *         @OA\Property(
@@ -408,7 +408,7 @@ class OrderController extends Controller
         return DB::transaction(function () use ($items) {
             $order = Order::create([
                 'user_id' => Auth::id(),
-                'status' => 'pending',
+                'status' => 'plaćeno',
                 'total_price' => 0,
             ]);
 
@@ -489,7 +489,7 @@ class OrderController extends Controller
      *         required={"order_id","status","total_price","created_at","updated_at","user","items"},
      *
      *         @OA\Property(property="order_id", type="integer", example=22),
-     *         @OA\Property(property="status", type="string", example="pending"),
+     *         @OA\Property(property="status", type="string", example="otkazano"),
      *         @OA\Property(property="total_price", type="number", format="float", example=12.30),
      *
      *         @OA\Property(
@@ -599,7 +599,7 @@ class OrderController extends Controller
      *       @OA\Property(
      *         property="status",
      *         type="string",
-     *         enum={"pending","paid","fulfilled","cancelled"},
+     *         enum={"plaćeno","otkazano","isporučeno"},
      *         example="paid"
      *       )
      *     )
@@ -618,7 +618,7 @@ class OrderController extends Controller
      *         required={"order_id","status","total_price","created_at","updated_at","user","items"},
      *
      *         @OA\Property(property="order_id", type="integer", example=22),
-     *         @OA\Property(property="status", type="string", example="paid"),
+     *         @OA\Property(property="status", type="string", example="plaćeno"),
      *         @OA\Property(property="total_price", type="number", format="float", example=65.00),
      *
      *         @OA\Property(
@@ -697,7 +697,7 @@ class OrderController extends Controller
         }
 
         $validated = $request->validate([
-            'status' => ['sometimes', 'string', 'in:pending,paid,fulfilled,cancelled'],
+            'status' => ['sometimes', 'string', 'in:plaćeno,isporučeno,otkazano'],
         ]);
 
         $order->update($validated);
